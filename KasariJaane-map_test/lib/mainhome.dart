@@ -14,8 +14,9 @@ class MainHome extends StatefulWidget {
 }
 
 class _MainHomeState extends State<MainHome> {
-LatLng center = LatLng(27.681932894249172, 85.31878090723217);
-@override
+  LatLng center = LatLng(27.681932894249172, 85.31878090723217);
+
+  @override
   void initState() {
     getCenter();
     super.initState();
@@ -29,7 +30,6 @@ LatLng center = LatLng(27.681932894249172, 85.31878090723217);
       center = LatLng(position.latitude, position.longitude);
     });
   }
-
 
   @override
   Widget build(BuildContext context) {

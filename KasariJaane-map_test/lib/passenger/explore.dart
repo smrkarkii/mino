@@ -4,9 +4,31 @@ import '../components/footer.dart';
 import '../components/searchbar.dart';
 import '../othercomp/horizontallist.dart';
 import '../utils/places.dart';
+import 'package:kasarijaane/model/vehicletype_model.dart';
+import 'package:kasarijaane/model/exploreplaces_model.dart';
+import 'package:kasarijaane/api_service.dart';
 
-class Explore extends StatelessWidget {
+class Explore extends StatefulWidget {
   const Explore({super.key});
+
+  @override
+  State<Explore> createState() => _ExploreState();
+}
+
+class _ExploreState extends State<Explore> {
+  late List<VehicleTypesModel>? vehicletype = [];
+  late List<ExplorePlacesModel>? exploreplace = [];
+  @override
+  void initState() {
+    super.initState();
+    _getData();
+  }
+
+  void _getData() async {
+    vehicletype = await (VehicleTypeService().getVehicleTypes());
+    exploreplace = await (ExplorePlacesService().getExplorePlaces());
+    Future.delayed(const Duration(seconds: 1)).then((value) => setState(() {}));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +54,7 @@ class Explore extends StatelessWidget {
                     ),
                   ),
                 ),
-                buildHorizontalList(context, 210.0),
+                buildHorizontalList(context, "places", 210.0),
                 Padding(
                   padding: EdgeInsets.all(10.0),
                   child: Text(
@@ -44,7 +66,7 @@ class Explore extends StatelessWidget {
                     ),
                   ),
                 ),
-                buildHorizontalList(context, 150.0),
+                buildHorizontalList(context, "vehicles", 150.0),
                 SizedBox(
                   height: 20.0,
                 ),
@@ -64,7 +86,17 @@ class Explore extends StatelessWidget {
     );
   }
 
-  buildHorizontalList(BuildContext context, var height) {
+  buildHorizontalList(BuildContext context, String type, var height) {
+    // Choose the data to display based on the value of type
+    List<dynamic> data = [];
+    if (type == 'vehicles') {
+      List<VehicleTypesModel>? data = vehicletype!;
+      print(vehicletype);
+    } else if (type == 'places') {
+      List<ExplorePlacesModel>? data = exploreplace!;
+      print(data);
+    }
+
     return Container(
       padding: EdgeInsets.only(top: 10.0, left: 20.0),
       height: height,
@@ -72,10 +104,15 @@ class Explore extends StatelessWidget {
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         primary: false,
-        itemCount: places == null ? 0 : places.length,
+        itemCount: data.length,
         itemBuilder: (BuildContext context, int index) {
-          Map place = places.reversed.toList()[index];
-          return HorizontalPlaceItem(place: place, Sheight: height,);
+          Map item = data.reversed.toList()[index];
+          if (type == 'vehicles') {
+            return HorizontalPlaceItem(place: item, Sheight: height);
+          } else if (type == 'places') {
+            return HorizontalPlaceItem(place: item, Sheight: height);
+          }
+          return Container(); // fallback if type is unknown
         },
       ),
     );

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kasarijaane/driver/homepage.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -17,6 +18,10 @@ class LoginPageState extends State<LoginPage> {
     form?.save();
     // validate form
     if (form!.validate()) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => DriverPage()),
+      );
       print('email: $_email, password: $_password');
       // perform login operation here
     }
@@ -25,6 +30,14 @@ class LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back,
+          ),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Form(
