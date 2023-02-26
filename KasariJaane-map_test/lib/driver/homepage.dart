@@ -24,42 +24,7 @@ class _DriverPageState extends State<DriverPage> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               SizedBox(height: 16.0),
-              Row(
-                children: [
-                  Text('Type'),
-                  SizedBox(
-                    width: 10,
-                  ),
-                  Expanded(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: kblack,
-                          width: 1,
-                        ),
-                        borderRadius: BorderRadius.circular(5),
-                      ),
-                      child: DropdownButton<String>(
-                        focusColor: kwhite,
-                        value: _selectedVehicleType,
-                        alignment: Alignment.centerRight,
-                        items: ['Bus', 'Tempo', 'Micro']
-                            .map((type) => DropdownMenuItem(
-                                  child: Text(type),
-                                  value: type,
-                                ))
-                            .toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedVehicleType = value!;
-                          });
-                        },
-                        underline: Container(),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+              
               SizedBox(height: 16.0),
               textfield('Vehicle ID', _vehicleIdController),
               SizedBox(height: 16.0),

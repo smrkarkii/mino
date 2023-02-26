@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:kasarijaane/auth/login.dart';
+import '../components/constants.dart';
 
 class SignupPage extends StatefulWidget {
   const SignupPage({super.key});
@@ -11,6 +13,13 @@ class _SignupPageState extends State<SignupPage> {
   final _formKey = GlobalKey<FormState>();
 
   late String _email, _password;
+
+  String _selectedVehicleType = 'Bus';
+  String _selectedVehicleId = '011';
+
+  final _vehicleIdController = TextEditingController();
+  final _startingPointController = TextEditingController();
+  final _destinationController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -48,6 +57,80 @@ class _SignupPageState extends State<SignupPage> {
               onSaved: (value) => _password = value!,
             ),
             SizedBox(height: 24.0),
+            Row(
+              children: [
+                Text('Type'),
+                SizedBox(
+                  width: 10,
+                ),
+                Expanded(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: kblack,
+                        width: 1,
+                      ),
+                      borderRadius: BorderRadius.circular(5),
+                    ),
+                    child: DropdownButton<String>(
+                      focusColor: kwhite,
+                      value: _selectedVehicleType,
+                      alignment: Alignment.centerRight,
+                      items: ['Bus', 'Tempo', 'Micro']
+                          .map((type) => DropdownMenuItem(
+                                child: Text(type),
+                                value: type,
+                              ))
+                          .toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedVehicleType = value!;
+                        });
+                      },
+                      underline: Container(),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 24.0),
+            Row(
+              children: [
+                Text('Id'),
+                SizedBox(
+                  width: 10,
+                ),
+                Expanded(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: kblack,
+                        width: 1,
+                      ),
+                      borderRadius: BorderRadius.circular(5),
+                    ),
+                    child: DropdownButton<String>(
+                      focusColor: kwhite,
+                      value: _selectedVehicleId,
+                      alignment: Alignment.centerRight,
+                      items: ['011', '012', '051']
+                          .map((type) => DropdownMenuItem(
+                                child: Text(_selectedVehicleId),
+                                value: type,
+                              ))
+                          .toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedVehicleId = value!;
+                        });
+                      },
+                      underline: Container(),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 24.0),
             // Sign up button
             ElevatedButton(
               child: Text("Sign Up"),
@@ -64,6 +147,8 @@ class _SignupPageState extends State<SignupPage> {
               child: Text("Already have an account? Login"),
               onPressed: () {
                 // Navigate to the login page
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => LoginPage()));
               },
             ),
           ],

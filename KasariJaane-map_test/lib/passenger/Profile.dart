@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:kasarijaane/auth/auth.dart';
 import 'package:kasarijaane/auth/login.dart';
+import 'package:kasarijaane/auth/signin.dart';
 import 'package:kasarijaane/components/constants.dart';
 
 class Profile extends StatelessWidget {
@@ -33,7 +35,7 @@ class Profile extends StatelessWidget {
               ElevatedButton(
                 onPressed: () {
                   Navigator.push(context,
-                      MaterialPageRoute(builder: (context) => LoginPage()));
+                      MaterialPageRoute(builder: (context) => AuthPage()));
                 },
                 child: Text('Go to driver mode.'),
               ),
