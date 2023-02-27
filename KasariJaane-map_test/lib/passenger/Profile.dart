@@ -35,7 +35,7 @@ class Profile extends StatelessWidget {
               ElevatedButton(
                 onPressed: () {
                   Navigator.push(context,
-                      MaterialPageRoute(builder: (context) => AuthPage()));
+                      MaterialPageRoute(builder: (context) => SignupPage()));
                 },
                 child: Text('Go to driver mode.'),
               ),
