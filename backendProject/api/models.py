@@ -1,5 +1,6 @@
 from django.db import models
-
+import uuid
+from django.contrib.auth.models import User
 # Create your models here.
 
 class Route(models.Model):
@@ -11,13 +12,15 @@ class Route(models.Model):
       return self.final_point
 
 
-class User(models.Model):
-    username = models.CharField( max_length=50)
-    password = models.CharField( max_length=10)
-    vehicle_number = models.CharField(max_length=50)
+# class User(models.Model):
+#     id=models.UUIDField(default=uuid.uuid4, primary_key=True)
+#     username = models.CharField( max_length=50)
+#     password = models.CharField( max_length=10)
+#     email = models.EmailField( max_length=20)
+#     # vehicle_number = models.CharField(max_length=50)
 
-    def __str__(self):
-      return self.username
+#     def __str__(self):
+#       return self.username
 
 class Notification(models.Model):
     title = models.CharField( max_length=20)

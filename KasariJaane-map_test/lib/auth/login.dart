@@ -18,9 +18,8 @@ class LoginPageState extends State<LoginPage> {
     form?.save();
     // validate form
     if (form!.validate()) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => DriverPage()),
+      Navigator.push(context, MaterialPageRoute(
+            builder: (context) =>DriverPage()),
       );
       print('email: $_email, password: $_password');
       // perform login operation here
