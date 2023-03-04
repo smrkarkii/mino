@@ -2,7 +2,8 @@
 
 from pathlib import Path
 import os
-
+import environ 
+env = environ.Env()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -14,7 +15,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-rz6)1pap!luie#8dx!y+w@pn%0b5qx!s0-k@wz#yvi*stcwoju'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['10.0.2.2','127.0.0.1']
 
@@ -71,9 +72,13 @@ WSGI_APPLICATION = 'backendProject.wsgi.application'
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+   'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'KASARIJAANE', 
+        'USER': 'bugengineers',
+        'PASSWORD': 'bugengineers',
+        'HOST': '127.0.0.1', 
+        'PORT': '5432',
     }
 
 }
@@ -130,11 +135,11 @@ REST_FRAMEWORK = {
     ],
    'DEFAULT_RENDERED-CLASSES':('rest_framework.renderers.JSONRenderer',),
    'DEFAULT_AUTHENTICATION_CLASSES': (
-       'knox.auth.TokenAuthentication',
+    #    'knox.auth.TokenAuthentication',
         #  'rest_framework_simplejwt.authentication.JWTAuthentication',
 
     ),
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
+        # 'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
     ],
 }

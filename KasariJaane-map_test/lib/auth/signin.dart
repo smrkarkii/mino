@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:kasarijaane/auth/login.dart';
 import '../components/constants.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class SignupPage extends StatefulWidget {
   const SignupPage({super.key});
@@ -20,6 +22,37 @@ class _SignupPageState extends State<SignupPage> {
   final _vehicleIdController = TextEditingController();
   final _startingPointController = TextEditingController();
   final _destinationController = TextEditingController();
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+
+  Future<void> signIn(BuildContext context) async {
+    // Define API endpoint and request body
+    final url = Uri.parse('http://127.0.0.1:8000/drivers');
+    final body = jsonEncode({
+      'email': emailController.text,
+      'password': passwordController.text,
+    });
+
+    // Make API request
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: body,
+    );
+
+    // Check API response and show appropriate message
+    if (response.statusCode == 201) {
+      // Sign-in successful
+      print('Registration successful');
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => LoginPage()),
+      );
+    } else {
+      // Sign-in failed
+      print('Sign-in failed: ${response.reasonPhrase}');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -133,14 +166,7 @@ class _SignupPageState extends State<SignupPage> {
             SizedBox(height: 24.0),
             // Sign up button
             ElevatedButton(
-              child: Text("Sign Up"),
-              onPressed: () {
-                if (_formKey.currentState!.validate()) {
-                  _formKey.currentState?.save();
-                  // Perform authentication and save the user data
-                }
-              },
-            ),
+                child: Text("Sign Up"), onPressed: () => signIn(context)),
             SizedBox(height: 18.0),
             // Login link
             TextButton(
