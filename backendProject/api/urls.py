@@ -7,7 +7,12 @@ from knox import views as knox_views
 
 
 urlpatterns = [
-    path('routes', views.publicRoutesList.as_view(), name="Routes"),
+  
+    path('routes', views.RoutesList.as_view(), name="Route"),
+    path('fare', views.FareList.as_view(), name="Fares"),
+    path('vehicle', views.VehicleList.as_view(), name="Vehicle"),
+    path('data', views.AllDataView.as_view(), name="Data"),
+    path('formatdata', views.custom_view.as_view(), name="Formatted Data"),
     path('drivers', views.DriverView.as_view(), name="Drivers"),
     path('signup', views.SignupApi.as_view(), name="Sign In"),
     path('notifications', views.NotificationList.as_view(), name="notifications get"),

@@ -1,8 +1,10 @@
 from django.contrib import admin
-from .models import publicRoutes, Driver, Notification, ExplorePlaces, VehicleType
+from .models import  Driver, Notification, ExplorePlaces, VehicleType, Vehicle, Fare, Route
 
 # Register your models here.
-admin.site.register(publicRoutes)
+admin.site.register(Vehicle)
+admin.site.register(Fare)
+admin.site.register(Route)
 admin.site.register(Driver)
 admin.site.register(Notification)
 admin.site.register(ExplorePlaces)

@@ -1,12 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:kasarijaane/api_service.dart';
+import 'package:kasarijaane/model/route_model.dart';
 import '../components/footer.dart';
 import '../components/constants.dart';
 import '../components/searchbar.dart';
 
-class ResultPage extends StatelessWidget {
+class ResultPage extends StatefulWidget {
   const ResultPage({Key? key, required this.query}) : super(key: key);
   final String query;
 
+  @override
+  State<ResultPage> createState() => _ResultPageState();
+}
+
+class _ResultPageState extends State<ResultPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -23,28 +30,25 @@ class ResultPage extends StatelessWidget {
   }
 }
 
-class OtherElements extends StatelessWidget {
+class OtherElements extends StatefulWidget {
   OtherElements({Key? key}) : super(key: key);
 
+  @override
+  State<OtherElements> createState() => _OtherElementsState();
+}
 
+class _OtherElementsState extends State<OtherElements> {
+  late List<RouteModel>? routeModel = [];
+  @override
+  void initState() {
+    super.initState();
+    _getData();
+  }
 
-
-
-//Todo : implement backend
-  final List<String> routeNames = [
-    "Route 1",
-    "Route 2",
-    "Route 3",
-    "Route 4",
-    "Route 5"
-  ];
-  final List<String> routeDetails = [
-    "Location details 1",
-    "Location details 2",
-    "Location details 3",
-    "Location details 4",
-    "Location details 5",
-  ];
+  void _getData() async {
+    routeModel = await (RouteService().getRoutes());
+    Future.delayed(const Duration(seconds: 1)).then((value) => setState(() {}));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +60,7 @@ class OtherElements extends StatelessWidget {
             children: [
               ListView.builder(
                 shrinkWrap: true,
-                itemCount: routeNames.length,
+                itemCount: routeModel!.length,
                 itemBuilder: (BuildContext context, int index) {
                   return Card(
                     child: Padding(
@@ -68,9 +72,9 @@ class OtherElements extends StatelessWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(routeNames[index]),
+                                Text(routeModel!.vehicles[index].name),
                                 SizedBox(height: 8.0),
-                                Text(routeDetails[index]),
+                                Text(routeModel[index]),
                               ],
                             ),
                           ),

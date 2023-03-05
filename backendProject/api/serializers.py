@@ -1,14 +1,35 @@
 from rest_framework import serializers
-from .models import publicRoutes, Driver, Notification, ExplorePlaces, VehicleType
+from .models import  Driver, Notification, ExplorePlaces, VehicleType
 from django.contrib.auth.models import User
+from .models import Vehicle, Route, Fare
 from django.contrib.auth import authenticate
 
-class publicRoutesSerializer(serializers.ModelSerializer):
+
+
+class VehicleSerializer(serializers.ModelSerializer):
+     class Meta:
+        model = Vehicle
+        fields = '__all__'
+
+class RouteSerializer(serializers.ModelSerializer):
+    # vehicles = VehicleSerializer(many=True)
     class Meta:
-        model = publicRoutes
-        fields = ['route_id','starting_point', 'final_point',
-                  'stops'
-                  ,'fare']
+        model = Route
+        fields = '__all__'
+
+class FareSerializer(serializers.ModelSerializer):
+
+    # routes = RouteSerializer(many=True)
+    class Meta:
+        model = Fare
+        fields = '__all__'
+
+class AllDataSerializer(serializers.Serializer):
+    vehicles = VehicleSerializer(many=True, read_only=True)
+    routes = RouteSerializer(many=True, read_only=True)
+    fares = FareSerializer(many=True, read_only=True)
+
+
 
 #user serializer
 class DriverSerializer(serializers.ModelSerializer):

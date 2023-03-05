@@ -1,11 +1,11 @@
 from django.shortcuts import render
-from .serializers import  NotificationSerializer, ExplorePlacesSerializer, VehicleTypeSerializer, RegisterSerializer, LoginSerializer, publicRoutesSerializer, DriverSerializer
+from .serializers import  NotificationSerializer, ExplorePlacesSerializer, VehicleTypeSerializer, RegisterSerializer, LoginSerializer, DriverSerializer, VehicleSerializer, RouteSerializer, FareSerializer, AllDataSerializer
 from rest_framework.generics import ListAPIView
 from rest_framework.views import APIView
 from .models import Driver
 from rest_framework import permissions
 from rest_framework.response import Response
-from .models import publicRoutes, Notification, ExplorePlaces, VehicleType
+from .models import  Notification, ExplorePlaces, VehicleType, Fare, Route, Vehicle
 from rest_framework import status,  generics, permissions
 from knox.models import AuthToken
 from rest_framework.decorators import api_view
@@ -19,18 +19,78 @@ from knox.views import LoginView as KnoxLoginView
 
 
 
-class publicRoutesList(APIView):
+
+class VehicleList(APIView):
     def get(self, format = None):
-        routes = Route.objects.all()
-        serializer = publicRoutesSerializer(routes, many=True)
+        vehicles = Vehicle.objects.all()
+        serializer = VehicleSerializer(vehicles, many=True)
         return Response(serializer.data)
 
     def post(self, request):
-        serializer = publicRoutesSerializer(data= request.data)
+        serializer = Vehicle(data= request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class RoutesList(APIView):
+    def get(self, format = None):
+        routes = Route.objects.all()
+        serializer = RouteSerializer(routes, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = RouteSerializer(data= request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+class FareList(APIView):
+    def get(self, format = None):
+        fare = Fare.objects.all()
+        serializer = FareSerializer(fare, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = FareSerializer(data= request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+class AllDataView(APIView):
+    def get(self, request):
+        data = {
+            'vehicles': Vehicle.objects.all(),
+            'routes': Route.objects.all(),
+            'fares': Fare.objects.all(),
+        }
+        serializer = AllDataSerializer(data)
+        return Response(serializer.data)
+    
+
+class custom_view(APIView):
+
+ def get(self, request):
+    # Get all the vehicles
+    vehicles = Vehicle.objects.all()
+    vehicles_data = []
+    # For each vehicle, get its routes and fares
+    for vehicle in vehicles:
+        routes = Route.objects.filter(vehicle=vehicle)
+        fares = Fare.objects.filter(route__in=routes)
+        # Serialize the data for the vehicle, its routes and fares
+        vehicle_data = VehicleSerializer(vehicle).data
+        routes_data = RouteSerializer(routes, many=True).data
+        fares_data = FareSerializer(fares, many=True).data
+        # Append the routes and fares data to the vehicle data
+        vehicle_data['routes'] = routes_data
+        vehicle_data['fares'] = fares_data
+        # Append the vehicle data to the list of vehicles data
+        vehicles_data.append(vehicle_data)
+    # Return the list of vehicles data
+    return Response({'vehicles': vehicles_data})
     
 class NotificationList(APIView):
     def get(self, format = None):

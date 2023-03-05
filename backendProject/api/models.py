@@ -4,15 +4,33 @@ from django.contrib.postgres.fields import ArrayField
 
 # Create your models here.
 
-class publicRoutes(models.Model):
-    route_id=models.UUIDField(default=uuid.uuid4, primary_key=True,  max_length=36)
-    starting_point = models.CharField( max_length=50)
-    final_point = models.CharField( max_length=50)
-    stops = ArrayField(models.CharField(max_length=50))
-    fare = models.CharField( max_length=50)
+from django.db import models
+
+class Vehicle(models.Model):
+    name = models.CharField(max_length=100)
+    type = models.CharField(max_length=100)
 
     def __str__(self):
-      return self.final_point
+      return self.name
+class Route(models.Model):
+    vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE)
+    name = models.CharField(max_length=100)
+    starting_point = models.CharField(max_length=100)
+    final_point = models.CharField(max_length=100)
+
+    def __str__(self):
+      return self.name
+
+class Fare(models.Model):
+    route = models.ForeignKey(Route, on_delete=models.CASCADE)
+    start_location = models.CharField(max_length=100)
+    end_location = models.CharField(max_length=100)
+    fare = models.DecimalField(max_digits=6, decimal_places=2)
+
+    def __str__(self):
+      return self.start_location
+    
+
 
 
 class Driver(models.Model):
