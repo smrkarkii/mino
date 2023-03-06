@@ -36,19 +36,9 @@ class _NotificationPageState extends State<NotificationPage> {
                 DateTime dateObj = notificationModel![index].createdAt;
                 DateTime now = DateTime.now();
                 int timeDiff = now.difference(dateObj).inHours;
-                String timeD;
-                int timeDiffInDays = now.difference(dateObj).inDays;
-
                 int timeDiffInMin = now.difference(dateObj).inMinutes;
-
                 if (timeDiff == 0) {
                   timeDiff = timeDiffInMin;
-                  timeD = timeDiff.toString() + " Minutes ago";
-                } else if (timeDiff > 23) {
-                  timeDiff = timeDiffInDays;
-                  timeD = timeDiff.toString() + " Days ago";
-                } else {
-                  timeD = timeDiff.toString() + " Hours ago";
                 }
 
                 return ListTile(
@@ -57,7 +47,7 @@ class _NotificationPageState extends State<NotificationPage> {
                   ),
                   title: Text(notificationModel![index].title),
                   subtitle: Text(notificationModel![index].message),
-                  trailing: Text(timeD),
+                  trailing: Text('$timeDiff hours ago'),
                   onTap: () {
                     // Add your code to handle the tap here
                   },

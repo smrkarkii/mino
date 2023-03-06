@@ -4,11 +4,10 @@
 
 import 'dart:convert';
 
-List<RouteModel> routeModelFromJson(String str) =>
-    List<RouteModel>.from(json.decode(str).map((x) => RouteModel.fromJson(x)));
+RouteModel routeModelFromJson(String str) =>
+    RouteModel.fromJson(json.decode(str));
 
-String routeModelToJson(List<RouteModel> data) =>
-    json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
+String routeModelToJson(RouteModel data) => json.encode(data.toJson());
 
 class RouteModel {
   RouteModel({

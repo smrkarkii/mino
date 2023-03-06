@@ -1,16 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:kasarijaane/api_service.dart';
+import 'package:kasarijaane/model/route_model.dart';
+import 'package:kasarijaane/offline/route.dart';
 import '../components/footer.dart';
 import '../components/constants.dart';
 import '../components/searchbar.dart';
 
-class ResultPage extends StatelessWidget {
+class ResultPage extends StatefulWidget {
   const ResultPage({Key? key, required this.query}) : super(key: key);
   final String query;
 
   @override
+  State<ResultPage> createState() => _ResultPageState();
+}
+
+class _ResultPageState extends State<ResultPage> {
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: kgrey,
+      appBar: AppBar(title: Text('Found routes')),
       body: SafeArea(
         child: Column(
           children: [
@@ -23,76 +32,50 @@ class ResultPage extends StatelessWidget {
   }
 }
 
-class OtherElements extends StatelessWidget {
+class OtherElements extends StatefulWidget {
   OtherElements({Key? key}) : super(key: key);
 
-//Todo : implement backend
-  final List<String> routeNames = [
-    "Route 1",
-    "Route 2",
-    "Route 3",
-    "Route 4",
-    "Route 5"
-  ];
-  final List<String> routeDetails = [
-    "Location details 1",
-    "Location details 2",
-    "Location details 3",
-    "Location details 4",
-    "Location details 5",
-  ];
+  @override
+  State<OtherElements> createState() => _OtherElementsState();
+}
+
+class _OtherElementsState extends State<OtherElements> {
+  RouteModel? routeModel;
+
+  @override
+  void initState() {
+    super.initState();
+    _getData();
+  }
+
+  void _getData() async {
+    routeModel = await (RouteService().getRoutes());
+    Future.delayed(const Duration(seconds: 1)).then((value) => setState(() {}));
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: SingleChildScrollView(
-        child: Container(
-          margin: EdgeInsets.all(8.0),
-          child: Column(
-            children: [
-              ListView.builder(
-                shrinkWrap: true,
-                itemCount: routeNames.length,
+    return routeModel == null
+        ? const Center(
+            child: CircularProgressIndicator(),
+          )
+        : Expanded(
+            child: ListView.builder(
+                // itemCount: routeModel!.length,
                 itemBuilder: (BuildContext context, int index) {
-                  return Card(
-                    child: Padding(
-                      padding: EdgeInsets.all(16.0),
-                      child: Row(
-                        children: [
-                          Icon(Icons.location_on),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(routeNames[index]),
-                                SizedBox(height: 8.0),
-                                Text(routeDetails[index]),
-                              ],
-                            ),
-                          ),
-                          Expanded(
-                            child: Container(
-                              height: 100.0,
-                              width: 100.0,
-                              decoration: BoxDecoration(
-                                image: DecorationImage(
-                                  image:
-                                      NetworkImage("https://picsum.photos/100"),
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+              String vehicle1 = routeModel!.vehicles[0].name;
+              String fare1 = routeModel!.vehicles[0].fares[0].fare;
+              print(vehicle1);
+              print(fare1);
+              return ListTile(
+                leading: Icon(Icons.location_on),
+                title: Text('vehicle'),
+                subtitle: Text('Fare '),
+                trailing: CircleAvatar(
+                  backgroundImage: NetworkImage("https://picsum.photos/100"),
+                ),
+              );
+            }),
+          );
   }
-}
+} // <-- Add this closing br

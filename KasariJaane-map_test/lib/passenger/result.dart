@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:kasarijaane/api_service.dart';
 import 'package:kasarijaane/model/route_model.dart';
+import 'package:kasarijaane/offline/route.dart';
 import '../components/footer.dart';
 import '../components/constants.dart';
 import '../components/searchbar.dart';
@@ -18,6 +19,7 @@ class _ResultPageState extends State<ResultPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: kgrey,
+      appBar: AppBar(title: Text('Found routes')),
       body: SafeArea(
         child: Column(
           children: [
@@ -38,7 +40,8 @@ class OtherElements extends StatefulWidget {
 }
 
 class _OtherElementsState extends State<OtherElements> {
-  late List<RouteModel>? routeModel = [];
+  RouteModel? routeModel;
+
   @override
   void initState() {
     super.initState();
@@ -52,55 +55,28 @@ class _OtherElementsState extends State<OtherElements> {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: SingleChildScrollView(
-        child: Container(
-          margin: EdgeInsets.all(8.0),
-          child: Column(
-            children: [
-              ListView.builder(
-                shrinkWrap: true,
-                itemCount: routeModel!.length,
-                itemBuilder: (BuildContext context, int index) {
-                  return Card(
-                    child: Padding(
-                      padding: EdgeInsets.all(16.0),
-                      child: Row(
-                        children: [
-                          Icon(Icons.location_on),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(routeModel!.vehicles[index].name),
-                                SizedBox(height: 8.0),
-                                Text(routeModel[index]),
-                              ],
-                            ),
-                          ),
-                          Expanded(
-                            child: Container(
-                              height: 100.0,
-                              width: 100.0,
-                              decoration: BoxDecoration(
-                                image: DecorationImage(
-                                  image:
-                                      NetworkImage("https://picsum.photos/100"),
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+    return routeModel == null
+        ? const Center(
+            child: CircularProgressIndicator(),
+          )
+        : Expanded(
+            child: ListView.builder(
+                itemCount: routeModel!.vehicles.length,
+                itemBuilder: (BuildContext context, int itemCount) {
+                  String vehicle1 = routeModel!.vehicles[0].name;
+                  String fare1 = routeModel!.vehicles[0].fares[0].fare;
+                  print(vehicle1);
+                  print(fare1);
+                  return ListTile(
+                    leading: Icon(Icons.location_on),
+                    title: Text('vehicle $vehicle1'),
+                    subtitle: Text('Fare $fare1 '),
+                    trailing: CircleAvatar(
+                      backgroundImage:
+                          NetworkImage("https://picsum.photos/100"),
                     ),
                   );
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+                }),
+          );
   }
-}
+} // <-- Add this closing br

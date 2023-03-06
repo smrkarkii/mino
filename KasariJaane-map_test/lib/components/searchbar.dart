@@ -47,7 +47,10 @@ class _SearchBarState extends State<SearchBar> {
             _query = query;
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => ResultPage(query: _query,)),
+              MaterialPageRoute(
+                  builder: (context) => ResultPage(
+                        query: _query,
+                      )),
             );
           });
         },

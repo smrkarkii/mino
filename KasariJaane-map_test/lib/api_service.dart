@@ -8,13 +8,12 @@ import 'package:kasarijaane/model/exploreplaces_model.dart';
 import 'package:kasarijaane/model/route_model.dart';
 
 class RouteService {
-  Future<List<RouteModel>?> getRoutes() async {
+  Future<RouteModel?> getRoutes() async {
     try {
-      var url =
-          Uri.parse(ApiConstants.baseUrl + ApiConstants.notificationsEndpoint);
+      var url = Uri.parse(ApiConstants.baseUrl + ApiConstants.routesEndpoint);
       var response = await http.get(url);
       if (response.statusCode == 200) {
-        List<RouteModel> _model = routeModelFromJson(response.body);
+        RouteModel _model = routeModelFromJson(response.body);
         return _model;
       }
     } catch (e) {
