@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:kasarijaane/passenger/result.dart';
 import 'constants.dart';
+import '../searchresult.dart';
 
 class SearchBar extends StatefulWidget {
   SearchBar({Key? key, required this.label}) : super(key: key);
@@ -27,32 +27,53 @@ class _SearchBarState extends State<SearchBar> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10.0),
         color: kwhite,
+        border:
+            Border.all(color: _query == null ? Colors.red : Colors.transparent),
       ),
       child: TextField(
         decoration: InputDecoration(
           prefixIcon: Icon(
             Icons.search,
-            color: kdarkpurple,
+            color: kblack,
           ),
           hintText: widget.label,
           border: InputBorder.none,
           contentPadding: const EdgeInsets.all(16.0),
-          suffixIcon: Icon(
-            Icons.tune,
-            color: kdarkpurple,
-          ),
+          // suffixIcon: Icon(
+          //   Icons.tune,
+          //   color: kdarkpurple,
+          // ),
         ),
         onSubmitted: (query) {
-          setState(() {
-            _query = query;
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => ResultPage(
-                        query: _query,
-                      )),
+          if (query.isEmpty) {
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: Text('Error'),
+                  content: Text('Please enter a ${widget.label}.'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: Text('OK'),
+                    ),
+                  ],
+                );
+              },
             );
-          });
+          } else {
+            setState(() {
+              _query = query;
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => SearchResultPage(
+                    query: _query,
+                  ),
+                ),
+              );
+            });
+          }
         },
       ),
     );

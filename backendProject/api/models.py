@@ -17,6 +17,8 @@ class Route(models.Model):
     name = models.CharField(max_length=100)
     starting_point = models.CharField(max_length=100)
     final_point = models.CharField(max_length=100)
+    stops = ArrayField(models.CharField(max_length=50))
+
 
     def __str__(self):
       return self.name
