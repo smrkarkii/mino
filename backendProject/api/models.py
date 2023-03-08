@@ -25,6 +25,7 @@ class Route(models.Model):
 
 class Fare(models.Model):
     route = models.ForeignKey(Route, on_delete=models.CASCADE)
+   
     start_location = models.CharField(max_length=100)
     end_location = models.CharField(max_length=100)
     fare = models.DecimalField(max_digits=6, decimal_places=2)

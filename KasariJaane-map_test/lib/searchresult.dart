@@ -40,6 +40,7 @@ class _ResultPageState extends State<SearchResultPage> {
 
   void _getData() async {
     routeModel = await (RouteService().getRoutes());
+    print(routeModel);
 
     Future.delayed(const Duration(seconds: 1)).then((value) => setState(() {
           print(value);
