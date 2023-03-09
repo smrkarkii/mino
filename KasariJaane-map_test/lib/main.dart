@@ -8,7 +8,7 @@ import 'menu/aboutus.dart';
 import 'menu/news.dart';
 import 'menu/notifications.dart';
 import 'menu/profile.dart';
-import 'menu/setting.dart';
+// import 'menu/setting.dart';
 
 void main() => runApp(MyApp());
 
@@ -45,7 +45,8 @@ List<Map<String, dynamic>> menuItems = [
     'icon': Icons.map,
     'label': 'Find Routes',
     'widget': SearchResultPage(
-      query: 'your location',
+      starting: 'pulchowk',
+      destination: 'ratnapark',
     ),
   },
   {
@@ -67,7 +68,7 @@ List<Map<String, dynamic>> menuItems = [
 List<Vehicle> vehicles = [
   Vehicle(name: 'Micro', icon: Icons.directions_car),
   Vehicle(name: 'Sajha Bus', icon: Icons.directions_bus),
-  Vehicle(name: 'Pathao', icon: Icons.directions_bike),
+  Vehicle(name: 'Public Bus', icon: Icons.directions_bike),
   Vehicle(name: 'Tempo', icon: Icons.directions_railway),
 ];
 List<String> places = [
@@ -77,7 +78,16 @@ List<String> places = [
   'Airport-Bhaktapur',
 ];
 
-class MyHomePage extends StatelessWidget {
+class MyHomePage extends StatefulWidget {
+  @override
+  State<MyHomePage> createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  TextEditingController startingPointController = TextEditingController();
+
+  TextEditingController destinationController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -133,8 +143,14 @@ class MyHomePage extends StatelessWidget {
                 ),
               ),
             ),
-            SearchBar(label: 'Starting Point'),
-            SearchBar(label: 'Destination'),
+            SearchBar(
+              label: 'Starting Point',
+              controller: startingPointController,
+            ),
+            SearchBar(
+              label: 'Destination',
+              controller: destinationController,
+            ),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -143,7 +159,36 @@ class MyHomePage extends StatelessWidget {
                     foregroundColor: Colors.white,
                     backgroundColor: kdarkpurple, // text color
                   ),
-                  onPressed: () {},
+                  onPressed: () {
+                    String startingPoint = startingPointController.text;
+                    String destination = destinationController.text;
+                    print('Starting point $startingPoint');
+                    print(destination);
+                    if (startingPoint.isEmpty || destination.isEmpty) {
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: Text('Error'),
+                          content: Text('Please fill in both fields.'),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: Text('OK'),
+                            ),
+                          ],
+                        ),
+                      );
+                    } else {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => SearchResultPage(
+                              starting: startingPoint,
+                              destination: destination),
+                        ),
+                      );
+                    }
+                  },
                   child: Text('Search Route'),
                 ),
               ],
@@ -185,12 +230,20 @@ class MyHomePage extends StatelessWidget {
                 child: ListView.builder(
                   itemCount: places.length,
                   itemBuilder: (BuildContext context, int index) {
+                    final startingAndDestination = places[index].split('-');
+                    final starting = startingAndDestination[0];
+                    final destination = startingAndDestination[1];
+
                     return ListTile(
                       onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) =>
-                                  SearchResultPage(query: places[index]))),
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => SearchResultPage(
+                            starting: starting,
+                            destination: destination,
+                          ),
+                        ),
+                      ),
                       iconColor: kblack,
                       textColor: kblack,
                       title: Text(places[index]),
@@ -198,7 +251,7 @@ class MyHomePage extends StatelessWidget {
                   },
                 ),
               ),
-            ),
+            )
           ],
         ),
       ),

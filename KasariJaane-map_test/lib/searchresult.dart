@@ -1,26 +1,63 @@
 import 'package:flutter/material.dart';
 
 import 'package:flutter/services.dart';
-import './model/route_model.dart';
+import 'package:kasarijaane/main.dart';
+import './model/route_model.dart' as r;
 
 import './api_service.dart';
 
-// import 'RouteDesc.dart';
-
 import '../components/constants.dart';
 
-class SearchResultPage extends StatefulWidget {
-  SearchResultPage({Key? key, required this.query}) : super(key: key);
+r.RouteModel? routeModel; //jsonVehicle
+List<dynamic> jsonVehicleOnly = []; //vehicle
+List<dynamic> jsonRouteOnly = []; //routeonly
 
-  final String query;
+class MyLogic {
+  String startingPoint;
+  String destination;
+
+  MyLogic({required this.startingPoint, required this.destination});
+
+  List<dynamic> search() {
+    dynamic data = routeModel!.vehicles;
+    List<dynamic> route = [];
+    List<dynamic> results = []; //add fares to it
+    for (var datas in data) {
+      for (var fare in datas.fares) {
+        if (fare.startLocation
+                .toLowerCase()
+                .contains(startingPoint.toLowerCase()) &&
+            fare.endLocation
+                .toLowerCase()
+                .contains(destination.toLowerCase())) {
+          results.add(fare); //only fare model
+          route.add(fare.route); // route of that vehicle
+          break;
+        }
+      }
+    }
+    return results; //returns the route ids
+  }
+
+  List<String> finalRoutes() {
+    // code for generating final routes
+    return ['Route 1', 'Route 2', 'Route 3'];
+  }
+}
+
+class SearchResultPage extends StatefulWidget {
+  SearchResultPage(
+      {Key? key, required this.starting, required this.destination})
+      : super(key: key);
+
+  final String starting;
+  final String destination;
 
   @override
   State<SearchResultPage> createState() => _ResultPageState();
 }
 
 class _ResultPageState extends State<SearchResultPage> {
-  RouteModel? routeModel;
-
   List<String> _options = [
     'Kathmandu',
     'Pokhara',
@@ -40,20 +77,10 @@ class _ResultPageState extends State<SearchResultPage> {
 
   void _getData() async {
     routeModel = await (RouteService().getRoutes());
-    print(routeModel);
 
-    Future.delayed(const Duration(seconds: 1)).then((value) => setState(() {
-          print(value);
-        }));
-  }
+    // print(routeModel);
 
-  void _filterOptions(String query) {
-    setState(() {
-      _options = ['Kathmandu', 'Pokhara', 'Chitwan', 'Lumbini', 'Bhaktapur']
-          .where((option) {
-        return option.toLowerCase().contains(query.toLowerCase());
-      }).toList();
-    });
+    Future.delayed(const Duration(seconds: 1)).then((value) => setState(() {}));
   }
 
   void _showOptions(BuildContext context) {
@@ -83,6 +110,16 @@ class _ResultPageState extends State<SearchResultPage> {
 
   @override
   Widget build(BuildContext context) {
+    jsonVehicleOnly = routeModel!.vehicles;
+
+    for (var i in jsonVehicleOnly) {
+      jsonRouteOnly.add(jsonVehicleOnly[i].routes);
+    }
+
+    MyLogic logic = MyLogic(startingPoint: 'a', destination: 'b');
+
+    dynamic searchedObject = logic.search();
+
     return routeModel == null
         ? const Center(
             child: CircularProgressIndicator(),
@@ -182,21 +219,22 @@ class _ResultPageState extends State<SearchResultPage> {
                 ),
                 Expanded(
                   child: ListView.builder(
-                    itemCount: 2,
+                    itemCount: searchedObject.length,
                     itemBuilder: (BuildContext context, int index) {
-                      print(index);
-                      String vehicle1 = routeModel!.vehicles[0].name;
+                      dynamic searchedRouteId = searchedObject.route;
+                      dynamic searchedVehicleId =
+                          jsonRouteOnly[searchedRouteId].vehicle;
+                      var searchedvehicle = []; //vehicle name
+                      var searchedlist = []; //routes
 
-                      String fare1 = routeModel!.vehicles[0].fares[0].fare;
-
-                      String routess =
-                          routeModel!.vehicles[0].routes[0].stops[0];
-
-                      print(vehicle1);
-
-                      print(fare1);
-
-                      print(routess);
+                      for (var vehicle in jsonVehicleOnly) {
+                        searchedvehicle.add(vehicle[searchedVehicleId]);
+                      }
+                      for (var i in searchedvehicle) {
+                        searchedlist.add(searchedvehicle[i].routes);
+                      }
+                      print('Searched List $searchedlist');
+                      print('vehicle: $searchedvehicle');
 
                       return Card(
                         margin:
@@ -205,7 +243,7 @@ class _ResultPageState extends State<SearchResultPage> {
                           padding: const EdgeInsets.all(8.0),
                           child: ListTile(
                             title: Text(
-                              'Vehicle $vehicle1 ',
+                              'Vehicle $searchedvehicle[index].name ',
                               style: TextStyle(
                                 color: kblack,
                                 fontSize: 18.0,
@@ -229,7 +267,6 @@ class _ResultPageState extends State<SearchResultPage> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 SizedBox(height: 4.0),
-
                                 Row(
                                   children: [
                                     Icon(
@@ -239,7 +276,7 @@ class _ResultPageState extends State<SearchResultPage> {
                                     ),
                                     SizedBox(width: 4.0),
                                     Text(
-                                      'Fare $fare1 ',
+                                      'Fare $searchedObject[index].fare ',
                                       style: TextStyle(
                                         color: kblack,
                                         fontSize: 14.0,
@@ -247,9 +284,7 @@ class _ResultPageState extends State<SearchResultPage> {
                                     ),
                                   ],
                                 ),
-
                                 SizedBox(height: 4.0),
-
                                 Row(
                                   children: [
                                     Icon(
@@ -259,7 +294,7 @@ class _ResultPageState extends State<SearchResultPage> {
                                     ),
                                     SizedBox(width: 4.0),
                                     Text(
-                                      'Routes $routess ',
+                                      'Routes $searchedlist[index] ',
                                       style: TextStyle(
                                         color: kblack,
                                         fontSize: 14.0,
@@ -267,51 +302,7 @@ class _ResultPageState extends State<SearchResultPage> {
                                     ),
                                   ],
                                 ),
-
                                 SizedBox(height: 4.0),
-
-                                // Row(
-
-                                //   children: [
-
-                                //     Icon(
-
-                                //       Icons.location_on,
-
-                                //       size: 16.0,
-
-                                //       color: kblack,
-
-                                //     ),
-
-                                //     SizedBox(width: 4.0),
-
-                                //     Expanded(
-
-                                //       child: Text(
-
-                                //         'Stops: ' + route['stops'].join(', '),
-
-                                //         style: TextStyle(
-
-                                //           color: kblack,
-
-                                //           fontSize: 14.0,
-
-                                //         ),
-
-                                //         overflow: TextOverflow.ellipsis,
-
-                                //         maxLines: 1,
-
-                                //       ),
-
-                                //     ),
-
-                                //   ],
-
-                                // ),
-
                                 SizedBox(height: 4.0),
                               ],
                             ),
