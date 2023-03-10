@@ -9,8 +9,8 @@ import './api_service.dart';
 import '../components/constants.dart';
 
 r.RouteModel? routeModel; //jsonVehicle
-List<dynamic> jsonVehicleOnly = []; //vehicle
-List<dynamic> jsonRouteOnly = []; //routeonly
+List<r.Route> jsonRouteOnly = []; //routeonly
+List<r.Vehicle> jsonVehicleOnly = [];
 
 class MyLogic {
   String startingPoint;
@@ -18,10 +18,10 @@ class MyLogic {
 
   MyLogic({required this.startingPoint, required this.destination});
 
-  List<dynamic> search() {
-    dynamic data = routeModel!.vehicles;
-    List<dynamic> route = [];
-    List<dynamic> results = []; //add fares to it
+  List<r.Fare> search() {
+    List<r.Vehicle> data = routeModel!.vehicles;
+
+    List<r.Fare> results = []; //add fares to it
     for (var datas in data) {
       for (var fare in datas.fares) {
         if (fare.startLocation
@@ -31,7 +31,7 @@ class MyLogic {
                 .toLowerCase()
                 .contains(destination.toLowerCase())) {
           results.add(fare); //only fare model
-          route.add(fare.route); // route of that vehicle
+
           break;
         }
       }
@@ -77,9 +77,6 @@ class _ResultPageState extends State<SearchResultPage> {
 
   void _getData() async {
     routeModel = await (RouteService().getRoutes());
-
-    // print(routeModel);
-
     Future.delayed(const Duration(seconds: 1)).then((value) => setState(() {}));
   }
 
@@ -106,19 +103,21 @@ class _ResultPageState extends State<SearchResultPage> {
     );
   }
 
-  // final List<Map<String, dynamic>> routeModel = [
-
   @override
   Widget build(BuildContext context) {
     jsonVehicleOnly = routeModel!.vehicles;
+    print('json vehicle only ${jsonVehicleOnly[0].name}');
+    print('json vehicle only ${jsonVehicleOnly.length}');
 
-    for (var i in jsonVehicleOnly) {
-      jsonRouteOnly.add(jsonVehicleOnly[i].routes);
+//adding all the routes in jsonRouteOnly (unfilitred)
+    for (var vehicle in jsonVehicleOnly) {
+      jsonRouteOnly.addAll(vehicle.routes);
     }
 
-    MyLogic logic = MyLogic(startingPoint: 'a', destination: 'b');
+    MyLogic logic =
+        MyLogic(startingPoint: 'sukedhara', destination: 'dhumbarahi');
 
-    dynamic searchedObject = logic.search();
+    List<r.Fare> searchedObject = logic.search();
 
     return routeModel == null
         ? const Center(
@@ -221,20 +220,45 @@ class _ResultPageState extends State<SearchResultPage> {
                   child: ListView.builder(
                     itemCount: searchedObject.length,
                     itemBuilder: (BuildContext context, int index) {
-                      dynamic searchedRouteId = searchedObject.route;
-                      dynamic searchedVehicleId =
-                          jsonRouteOnly[searchedRouteId].vehicle;
-                      var searchedvehicle = []; //vehicle name
-                      var searchedlist = []; //routes
+                      print('searched objects $searchedObject');
+                      print(searchedObject.length);
+                      //finding list of route ids with matching searches
+                      List<String> fareList = [];
+                      fareList.add(searchedObject[index].fare);
 
-                      for (var vehicle in jsonVehicleOnly) {
-                        searchedvehicle.add(vehicle[searchedVehicleId]);
+                      List<int> searchedRouteId = [];
+                      List<r.Route> searchedRoutes = [];
+                      for (var obj in searchedObject) {
+                        searchedRouteId.add(obj.route);
+                        // print(searchedRouteId);rr
                       }
-                      for (var i in searchedvehicle) {
-                        searchedlist.add(searchedvehicle[i].routes);
+                      print(searchedRouteId); //ok till here
+                      //filtered list of routes
+                      for (var route in jsonRouteOnly) {
+                        if (searchedRouteId.contains(route.id)) {
+                          searchedRoutes.add(route);
+                          // print(route.id);
+                        }
                       }
-                      print('Searched List $searchedlist');
-                      print('vehicle: $searchedvehicle');
+                      print(jsonRouteOnly.length);
+                      List<int> searchedVehicleId = [];
+                      List<r.Vehicle> searchedVehicles = [];
+                      for (var obj in searchedRoutes) {
+                        searchedVehicleId.add(obj.vehicle);
+                        // print(searchedVehicleId);
+                      }
+                      //filtered list of vehicles
+                      for (var vehic in jsonVehicleOnly) {
+                        if (searchedRouteId.contains(vehic.id)) {
+                          searchedVehicles.add(vehic);
+                        }
+                      }
+
+                      // print(searchedVehicles);
+                      // print('Searched Routes  ${searchedRoutes}');
+                      // print('Searched Routes Id ${searchedRouteId}');
+                      // print('Searched Vehicles ${searchedVehicles}');
+                      // print('Searched Vehicles Id ${searchedVehicleId}');
 
                       return Card(
                         margin:
@@ -243,26 +267,13 @@ class _ResultPageState extends State<SearchResultPage> {
                           padding: const EdgeInsets.all(8.0),
                           child: ListTile(
                             title: Text(
-                              'Vehicle $searchedvehicle[index].name ',
+                              ' ${searchedVehicles[index].name} ',
                               style: TextStyle(
                                 color: kblack,
                                 fontSize: 18.0,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-
-                            // onTap: () => Navigator.push(
-
-                            //   context,
-
-                            //   MaterialPageRoute(
-
-                            //     builder: (context) => RouteDesc(vehicle1),
-
-                            //   ),
-
-                            // ),
-
                             subtitle: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -276,7 +287,7 @@ class _ResultPageState extends State<SearchResultPage> {
                                     ),
                                     SizedBox(width: 4.0),
                                     Text(
-                                      'Fare $searchedObject[index].fare ',
+                                      'Routes ${searchedRoutes[index].stops} ',
                                       style: TextStyle(
                                         color: kblack,
                                         fontSize: 14.0,
@@ -294,7 +305,7 @@ class _ResultPageState extends State<SearchResultPage> {
                                     ),
                                     SizedBox(width: 4.0),
                                     Text(
-                                      'Routes $searchedlist[index] ',
+                                      'Fares ${fareList[index]}',
                                       style: TextStyle(
                                         color: kblack,
                                         fontSize: 14.0,

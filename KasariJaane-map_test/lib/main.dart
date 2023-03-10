@@ -27,11 +27,11 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class Vehicle {
+class VehicleMain {
   final String name;
   final IconData icon;
 
-  Vehicle({required this.name, required this.icon});
+  VehicleMain({required this.name, required this.icon});
 }
 
 List<Map<String, dynamic>> menuItems = [
@@ -65,12 +65,13 @@ List<Map<String, dynamic>> menuItems = [
     'widget': AboutUs(),
   },
 ];
-List<Vehicle> vehicles = [
-  Vehicle(name: 'Micro', icon: Icons.directions_car),
-  Vehicle(name: 'Sajha Bus', icon: Icons.directions_bus),
-  Vehicle(name: 'Public Bus', icon: Icons.directions_bike),
-  Vehicle(name: 'Tempo', icon: Icons.directions_railway),
+List<VehicleMain> vehicles = [
+  VehicleMain(name: 'Micro', icon: Icons.directions_car),
+  VehicleMain(name: 'Sajha Bus', icon: Icons.directions_bus),
+  VehicleMain(name: 'Public Bus', icon: Icons.directions_bike),
+  VehicleMain(name: 'Tempo', icon: Icons.directions_railway),
 ];
+
 List<String> places = [
   'Ratnapark-Buspark',
   'Buspark-Lagankhel',
