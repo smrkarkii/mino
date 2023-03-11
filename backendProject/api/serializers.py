@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import  Driver, Notification, ExplorePlaces, VehicleType
 from django.contrib.auth.models import User
-from .models import Vehicle, Route, Fare
+from .models import Vehicle, Route, Fare, Stop
 from django.contrib.auth import authenticate
 
 
@@ -16,6 +16,11 @@ class RouteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Route
         fields = '__all__'
+class StopsSerializer(serializers.ModelSerializer):
+    # vehicles = VehicleSerializer(many=True)
+    class Meta:
+        model = Stop
+        fields = '__all__'
 
 class FareSerializer(serializers.ModelSerializer):
 
@@ -28,6 +33,7 @@ class AllDataSerializer(serializers.Serializer):
     vehicles = VehicleSerializer(many=True, read_only=True)
     routes = RouteSerializer(many=True, read_only=True)
     fares = FareSerializer(many=True, read_only=True)
+    stops = StopsSerializer(many = True, read_only=True) 
 
 
 

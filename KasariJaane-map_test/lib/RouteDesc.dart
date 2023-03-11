@@ -5,8 +5,7 @@ import 'components/constants.dart';
 class RouteDesc extends StatelessWidget {
   final dynamic route;
 
-  const RouteDesc(this.route, {Key? key}) : super(key: key);
-
+  RouteDesc({Key? key, required this.route}) : super(key: key);
   @override
   Widget build(BuildContext context) {
     List<String> stops = [];
@@ -35,7 +34,7 @@ class RouteDesc extends StatelessWidget {
           children: [
             Text(
               '${route['name']}',
-              style: TextStyle(fontSize:28.0, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 28.0, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 8.0),
             Text(
@@ -59,9 +58,15 @@ class RouteDesc extends StatelessWidget {
                   itemCount: stops.length,
                   itemBuilder: (BuildContext context, int index) {
                     return ListTile(
-                      leading: Icon(Icons.stop_circle_outlined, color: Colors.redAccent,),
+                      leading: Icon(
+                        Icons.stop_circle_outlined,
+                        color: Colors.redAccent,
+                      ),
                       title: Text(stops[index]),
-                      trailing: Icon(Icons.arrow_downward, color: kblack,),
+                      trailing: Icon(
+                        Icons.arrow_downward,
+                        color: kblack,
+                      ),
                     );
                   },
                 ),

@@ -32,21 +32,18 @@ class Vehicle {
     required this.name,
     required this.type,
     required this.routes,
-    required this.fares,
   });
 
   int id;
   String name;
   String type;
   List<Route> routes;
-  List<Fare> fares;
 
   factory Vehicle.fromJson(Map<String, dynamic> json) => Vehicle(
         id: json["id"],
         name: json["name"],
         type: json["type"],
         routes: List<Route>.from(json["routes"].map((x) => Route.fromJson(x))),
-        fares: List<Fare>.from(json["fares"].map((x) => Fare.fromJson(x))),
       );
 
   Map<String, dynamic> toJson() => {
@@ -54,6 +51,45 @@ class Vehicle {
         "name": name,
         "type": type,
         "routes": List<dynamic>.from(routes.map((x) => x.toJson())),
+      };
+}
+
+class Route {
+  Route({
+    required this.id,
+    required this.name,
+    required this.startingPoint,
+    required this.finalPoint,
+    required this.vehicle,
+    required this.stops,
+    required this.fares,
+  });
+
+  int id;
+  String name;
+  String startingPoint;
+  String finalPoint;
+  int vehicle;
+  List<Stop> stops;
+  List<Fare> fares;
+
+  factory Route.fromJson(Map<String, dynamic> json) => Route(
+        id: json["id"],
+        name: json["name"],
+        startingPoint: json["starting_point"],
+        finalPoint: json["final_point"],
+        vehicle: json["vehicle"],
+        stops: List<Stop>.from(json["stops"].map((x) => Stop.fromJson(x))),
+        fares: List<Fare>.from(json["fares"].map((x) => Fare.fromJson(x))),
+      );
+
+  Map<String, dynamic> toJson() => {
+        "id": id,
+        "name": name,
+        "starting_point": startingPoint,
+        "final_point": finalPoint,
+        "vehicle": vehicle,
+        "stops": List<dynamic>.from(stops.map((x) => x.toJson())),
         "fares": List<dynamic>.from(fares.map((x) => x.toJson())),
       };
 }
@@ -90,38 +126,38 @@ class Fare {
       };
 }
 
-class Route {
-  Route({
+class Stop {
+  Stop({
     required this.id,
     required this.name,
-    required this.startingPoint,
-    required this.finalPoint,
-    required this.stops,
-    required this.vehicle,
+    required this.latitude,
+    required this.longitude,
+    required this.distance,
+    required this.route,
   });
 
   int id;
   String name;
-  String startingPoint;
-  String finalPoint;
-  List<String> stops;
-  int vehicle;
+  String latitude;
+  String longitude;
+  int distance;
+  int route;
 
-  factory Route.fromJson(Map<String, dynamic> json) => Route(
+  factory Stop.fromJson(Map<String, dynamic> json) => Stop(
         id: json["id"],
         name: json["name"],
-        startingPoint: json["starting_point"],
-        finalPoint: json["final_point"],
-        stops: List<String>.from(json["stops"].map((x) => x)),
-        vehicle: json["vehicle"],
+        latitude: json["latitude"],
+        longitude: json["longitude"],
+        distance: json["distance"],
+        route: json["route"],
       );
 
   Map<String, dynamic> toJson() => {
         "id": id,
         "name": name,
-        "starting_point": startingPoint,
-        "final_point": finalPoint,
-        "stops": List<dynamic>.from(stops.map((x) => x)),
-        "vehicle": vehicle,
+        "latitude": latitude,
+        "longitude": longitude,
+        "distance": distance,
+        "route": route,
       };
 }

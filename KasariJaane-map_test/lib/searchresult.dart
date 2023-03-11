@@ -7,6 +7,7 @@ import './model/route_model.dart' as r;
 import './api_service.dart';
 
 import '../components/constants.dart';
+import './RouteDesc.dart';
 
 r.RouteModel? routeModel; //jsonVehicle
 List<r.Route> jsonRouteOnly = []; //routeonly
@@ -19,23 +20,25 @@ class MyLogic {
   MyLogic({required this.startingPoint, required this.destination});
 
   List<r.Fare> search() {
-    List<r.Vehicle> data = routeModel!.vehicles;
+    List<r.Vehicle> vehicledata = routeModel!.vehicles;
+    List<r.Stop> stopdata = [];
 
     List<r.Fare> results = []; //add fares to it
-    for (var datas in data) {
-      for (var fare in datas.fares) {
-        if (fare.startLocation
-                .toLowerCase()
-                .contains(startingPoint.toLowerCase()) &&
-            fare.endLocation
-                .toLowerCase()
-                .contains(destination.toLowerCase())) {
-          results.add(fare); //only fare model
+    int count = 0;
+    for (var vehicle in vehicledata) {
+      for (var route in vehicle.routes) {
+        for (var fare in route.fares) {
+          if (fare.startLocation.toLowerCase() == startingPoint.toLowerCase() &&
+              fare.endLocation.toLowerCase() == destination.toLowerCase()) {
+            results.add(fare); //only fare model
+            count += 1;
 
-          break;
+            break;
+          }
         }
       }
     }
+    print('count $count');
     return results; //returns the route ids
   }
 
@@ -77,6 +80,7 @@ class _ResultPageState extends State<SearchResultPage> {
 
   void _getData() async {
     routeModel = await (RouteService().getRoutes());
+    print(routeModel);
     Future.delayed(const Duration(seconds: 1)).then((value) => setState(() {}));
   }
 
@@ -106,7 +110,7 @@ class _ResultPageState extends State<SearchResultPage> {
   @override
   Widget build(BuildContext context) {
     jsonVehicleOnly = routeModel!.vehicles;
-    print('json vehicle only ${jsonVehicleOnly[0].name}');
+
     print('json vehicle only ${jsonVehicleOnly.length}');
 
 //adding all the routes in jsonRouteOnly (unfilitred)
@@ -114,10 +118,10 @@ class _ResultPageState extends State<SearchResultPage> {
       jsonRouteOnly.addAll(vehicle.routes);
     }
 
-    MyLogic logic =
-        MyLogic(startingPoint: 'sukedhara', destination: 'dhumbarahi');
+    MyLogic logic = MyLogic(startingPoint: 'a', destination: 'b');
 
     List<r.Fare> searchedObject = logic.search();
+    print('searched objects length${searchedObject.length}');
 
     return routeModel == null
         ? const Center(
@@ -221,10 +225,12 @@ class _ResultPageState extends State<SearchResultPage> {
                     itemCount: searchedObject.length,
                     itemBuilder: (BuildContext context, int index) {
                       print('searched objects $searchedObject');
-                      print(searchedObject.length);
+                      print('searached object length ${searchedObject.length}');
                       //finding list of route ids with matching searches
                       List<String> fareList = [];
-                      fareList.add(searchedObject[index].fare);
+                      for (var eachfare in searchedObject) {
+                        fareList.add(eachfare.fare);
+                      }
 
                       List<int> searchedRouteId = [];
                       List<r.Route> searchedRoutes = [];
@@ -253,12 +259,7 @@ class _ResultPageState extends State<SearchResultPage> {
                           searchedVehicles.add(vehic);
                         }
                       }
-
-                      // print(searchedVehicles);
-                      // print('Searched Routes  ${searchedRoutes}');
-                      // print('Searched Routes Id ${searchedRouteId}');
-                      // print('Searched Vehicles ${searchedVehicles}');
-                      // print('Searched Vehicles Id ${searchedVehicleId}');
+                      //all stops
 
                       return Card(
                         margin:
@@ -267,13 +268,20 @@ class _ResultPageState extends State<SearchResultPage> {
                           padding: const EdgeInsets.all(8.0),
                           child: ListTile(
                             title: Text(
-                              ' ${searchedVehicles[index].name} ',
+                              '${searchedVehicles[index].name}',
                               style: TextStyle(
                                 color: kblack,
                                 fontSize: 18.0,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
+                            // onTap: () => Navigator.push(
+                            //   context,
+                            //   MaterialPageRoute(
+                            //     builder: (context) =>
+                            //         RouteDesc(route: $searchedRoutes),
+                            //   ),
+                            // ),
                             subtitle: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -287,7 +295,9 @@ class _ResultPageState extends State<SearchResultPage> {
                                     ),
                                     SizedBox(width: 4.0),
                                     Text(
-                                      'Routes ${searchedRoutes[index].stops} ',
+                                      '${searchedRoutes[index].stops.map((stop) => stop.name)} '
+                                      // ${searchedRoutes[index].stops} '
+                                      ,
                                       style: TextStyle(
                                         color: kblack,
                                         fontSize: 14.0,

@@ -17,11 +17,22 @@ class Route(models.Model):
     name = models.CharField(max_length=100)
     starting_point = models.CharField(max_length=100)
     final_point = models.CharField(max_length=100)
-    stops = ArrayField(models.CharField(max_length=50))
+    
 
 
     def __str__(self):
       return self.name
+    
+
+class Stop(models.Model):
+    route = models.ForeignKey(Route, on_delete=models.CASCADE, related_name='stops')
+    name = models.CharField(max_length=255)
+    latitude = models.DecimalField(max_digits=9, decimal_places=6)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6)
+    distance = models.IntegerField()
+
+    def __str__(self):
+        return self.name
 
 class Fare(models.Model):
     route = models.ForeignKey(Route, on_delete=models.CASCADE)
