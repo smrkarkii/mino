@@ -1,4 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:flutter_map/flutter_map.dart' show Marker;
+import 'package:geolocator/geolocator.dart';
+import 'package:location/location.dart';
+import 'dart:async';
+
+// import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+
 import './components/constants.dart';
 import './components/searchbar.dart';
 import './searchresult.dart';
@@ -12,7 +21,12 @@ import 'menu/profile.dart';
 
 void main() => runApp(MyApp());
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -88,6 +102,58 @@ class _MyHomePageState extends State<MyHomePage> {
   TextEditingController startingPointController = TextEditingController();
 
   TextEditingController destinationController = TextEditingController();
+  final MapController mapController = MapController();
+  MapOptions _mapOptions =
+      MapOptions(center: LatLng(27.712020, 85.312950), zoom: 12.0);
+  LatLng userLocation = LatLng(27.712020, 85.312950);
+  final List<Marker> markers = [];
+  // StreamSubscription<LocationData> _locationSubscription =
+  //     StreamSubscription<LocationData>.empty();
+  // LocationData _currentLocation =
+  //     LocationData.fromMap({"latitude": 0.0, "longitude": 0.0});
+
+  void _addMarker(LatLng point) {
+    setState(() {
+      markers.add(
+        Marker(
+          width: 80.0,
+          height: 80.0,
+          point: point,
+          builder: (ctx) => Container(
+            child: Icon(Icons.location_on, color: kdarkpurple),
+          ),
+        ),
+      );
+    });
+  }
+
+  Future<LatLng> _getUserLocation() async {
+    final position = await Geolocator.getCurrentPosition();
+    // userLocation = LatLng(position.latitude, position.longitude);
+    print('position is $position ');
+    return LatLng(position.latitude, position.longitude);
+  }
+
+  Future<void> _setupMapOptions() async {
+    userLocation = await _getUserLocation();
+    print('userLocation is $userLocation');
+    setState(() {
+      _mapOptions = MapOptions(center: userLocation, zoom: 12.0);
+    });
+  }
+// In the FlutterMap widget
+
+  @override
+  void initState() {
+    super.initState();
+    // _locationSubscription =
+    //     Location().onLocationChanged.listen((LocationData locationData) {
+    //   setState(() {
+    //     _currentLocation = locationData;
+    //   });
+    // });
+    _setupMapOptions();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -134,6 +200,35 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            SizedBox(
+              height: 350, // set the height to your desired value
+              child: FlutterMap(
+                mapController: mapController,
+                options: _mapOptions,
+                children: [
+                  TileLayer(
+                    urlTemplate:
+                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    userAgentPackageName: 'com.example.app',
+                  ),
+                  MarkerLayer(
+                    markers: [
+                      Marker(
+                        point: userLocation,
+                        width: 80,
+                        height: 80,
+                        builder: (ctx) => Container(
+                          child: Icon(
+                            Icons.location_on,
+                            color: Colors.red,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
             const Padding(
               padding: EdgeInsets.all(16.0),
               child: Text(
