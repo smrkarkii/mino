@@ -40,7 +40,7 @@ class StopsList(APIView):
         return Response(serializer.data)
 
     def post(self, request):
-        serializer = Stop(data= request.data)
+        serializer = Stop(data= request.data,)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -65,7 +65,7 @@ class FareList(APIView):
         return Response(serializer.data)
 
     def post(self, request):
-        serializer = FareSerializer(data= request.data)
+        serializer = FareSerializer(data= request.data, many =True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
