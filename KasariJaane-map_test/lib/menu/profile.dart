@@ -10,7 +10,7 @@ class ProfilePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('ProfilePage'),
-        backgroundColor: kdarkpurple,
+        backgroundColor: ktheme,
         centerTitle: true,
       ),
       body: Column(
@@ -32,6 +32,11 @@ class ProfilePage extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  backgroundColor: ktheme, // text color
+                  minimumSize: Size(200, 50),
+                ),
                 onPressed: () {
                   Navigator.push(context,
                       MaterialPageRoute(builder: (context) => SignupPage()));
@@ -44,6 +49,7 @@ class ProfilePage extends StatelessWidget {
       ),
     );
   }
+
   Widget _buildNewsItem(String title, String content, String imageUrl) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

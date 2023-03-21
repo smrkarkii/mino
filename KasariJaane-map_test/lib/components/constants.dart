@@ -9,7 +9,5 @@ Color kyellow = const Color(0xffFFD700);
 Color kgrey = const Color(0xffD9D9D9);
 Color kblack = const Color(0xff000000);
 Color kwhite = const Color(0xffffffff);
-
-
-
-
+Color ktheme = const Color(0xfff86433);
+Color kdarkblue = Color.fromARGB(255, 28, 216, 233);

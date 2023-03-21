@@ -144,6 +144,13 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
               ),
             ),
+            ListTile(
+              leading: Icon(Icons.location_on),
+              title: Text('New York, USA'),
+              subtitle: Text("Empire State Building"),
+              // onTap: () => _setDemoLocation(context, demoAddressNewYork),
+              trailing: Icon(Icons.chevron_right),
+            ),
             SearchBar(
               label: 'Starting Point',
               controller: startingPointController,

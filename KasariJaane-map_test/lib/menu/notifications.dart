@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../model/notification_model.dart';
 import '../api_service.dart';
+import '../components/constants.dart';
 
 class NotificationPage extends StatefulWidget {
   const NotificationPage({super.key});
@@ -25,7 +26,16 @@ class _NotificationPageState extends State<NotificationPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Notifications')),
+      appBar: AppBar(
+        title: Text(
+          'Notifications',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        backgroundColor: ktheme,
+      ),
       body: notificationModel == null || notificationModel!.isEmpty
           ? const Center(
               child: CircularProgressIndicator(),

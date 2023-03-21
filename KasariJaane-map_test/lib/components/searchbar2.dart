@@ -3,8 +3,8 @@ import 'package:flutter/rendering.dart';
 import 'constants.dart';
 import '../searchresult.dart';
 
-class SearchBar extends StatelessWidget {
-  SearchBar({Key? key, required this.label, required this.controller})
+class SearchBar2 extends StatelessWidget {
+  SearchBar2({Key? key, required this.label, required this.controller})
       : super(key: key);
   String label;
   final TextEditingController controller;
@@ -23,8 +23,8 @@ class SearchBar extends StatelessWidget {
         controller: controller,
         decoration: InputDecoration(
           prefixIcon: Icon(
-            Icons.place,
-            color: ktheme,
+            Icons.my_location,
+            color: kdarkblue,
           ),
           hintText: label,
           border: InputBorder.none,

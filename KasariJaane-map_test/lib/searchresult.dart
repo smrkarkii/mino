@@ -7,11 +7,16 @@ import './model/route_model.dart' as r;
 import './api_service.dart';
 
 import '../components/constants.dart';
+// import './components/constants.dart';
+import './components/searchbar.dart';
+import './components/searchbar2.dart';
 import './RouteDesc.dart';
 
 r.RouteModel? routeModel; //jsonVehicle
 List<r.Route> jsonRouteOnly = []; //routeonly
 List<r.Vehicle> jsonVehicleOnly = [];
+String start = "";
+String finish = "";
 
 class MyLogic {
   String startingPoint;
@@ -31,6 +36,8 @@ class MyLogic {
           if (fare.startLocation.toLowerCase() == startingPoint.toLowerCase() &&
               fare.endLocation.toLowerCase() == destination.toLowerCase()) {
             results.add(fare); //only fare model
+            start = startingPoint;
+            finish = destination;
             count += 1;
 
             break;
@@ -61,13 +68,9 @@ class SearchResultPage extends StatefulWidget {
 }
 
 class _ResultPageState extends State<SearchResultPage> {
-  List<String> _options = [
-    'Kathmandu',
-    'Pokhara',
-    'Chitwan',
-    'Lumbini',
-    'Bhaktapur'
-  ];
+  TextEditingController startingPointController = TextEditingController();
+
+  TextEditingController destinationController = TextEditingController();
 
   String? _selectedOption;
 
@@ -88,28 +91,28 @@ class _ResultPageState extends State<SearchResultPage> {
     });
   }
 
-  void _showOptions(BuildContext context) {
-    showModalBottomSheet<void>(
-      context: context,
-      builder: (BuildContext context) {
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: _options.map((option) {
-            return ListTile(
-              title: Text(option),
-              onTap: () {
-                setState(() {
-                  _selectedOption = option;
-                });
+  // void _showOptions(BuildContext context) {
+  //   showModalBottomSheet<void>(
+  //     context: context,
+  //     builder: (BuildContext context) {
+  //       return Column(
+  //         mainAxisSize: MainAxisSize.min,
+  //         children: _options.map((option) {
+  //           return ListTile(
+  //             title: Text(option),
+  //             onTap: () {
+  //               setState(() {
+  //                 _selectedOption = option;
+  //               });
 
-                Navigator.pop(context);
-              },
-            );
-          }).toList(),
-        );
-      },
-    );
-  }
+  //               Navigator.pop(context);
+  //             },
+  //           );
+  //         }).toList(),
+  //       );
+  //     },
+  //   );
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -135,8 +138,8 @@ class _ResultPageState extends State<SearchResultPage> {
           )
         : Scaffold(
             appBar: AppBar(
-              title: Text('Search Results'),
-              backgroundColor: kdarkpurple,
+              title: Text('Available Routes'),
+              backgroundColor: ktheme,
               iconTheme: IconThemeData(color: Colors.white),
               toolbarTextStyle: TextTheme(
                 headline6: TextStyle(color: Colors.white, fontSize: 18),
@@ -153,75 +156,62 @@ class _ResultPageState extends State<SearchResultPage> {
                   margin: EdgeInsets.all(16),
                   child: Column(
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text('From: ', style: TextStyle(color: kblack)),
-                          DropdownButton<String>(
-                            value: 'Kathmandu',
-                            onChanged: (String? newValue) {},
-                            items: <String>[
-                              'Kathmandu',
-                              'Pokhara',
-                              'Chitwan',
-                              'Lumbini',
-                              'Bhaktapur'
-                            ].map((String value) {
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: Text(value,
-                                    style: TextStyle(color: kgreen)),
-                              );
-                            }).toList(),
-                            hint: Text('From', style: TextStyle(color: kgreen)),
-                          ),
-                        ],
+                      SearchBar2(
+                        label: start,
+                        controller: startingPointController,
+                      ),
+                      SearchBar(
+                        label: finish,
+                        controller: destinationController,
                       ),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Row(
-                            children: [
-                              Text('To: ', style: TextStyle(color: kblack)),
-                              DropdownButton<String>(
-                                value: 'Pokhara',
-                                onChanged: (String? newValue) {},
-                                items: <String>[
-                                  'Kathmandu',
-                                  'Pokhara',
-                                  'Chitwan',
-                                  'Lumbini',
-                                  'Bhaktapur'
-                                ].map((String value) {
-                                  return DropdownMenuItem<String>(
-                                    value: value,
-                                    child: Text(value,
-                                        style: TextStyle(color: kblack)),
-                                  );
-                                }).toList(),
-                                hint:
-                                    Text('To', style: TextStyle(color: kblack)),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                foregroundColor: Colors.white,
-
-                                backgroundColor: kdarkpurple, // text color
-                              ),
-                              onPressed: () {},
-                              child: Text('Search Route'),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              foregroundColor: Colors.white,
+                              backgroundColor: ktheme, // text color
+                              minimumSize: Size(200, 50),
                             ),
-                          ],
-                        ),
+                            // shape: RoundedRectangleBorder(
+                            //   borderRadius: BorderRadius.circular(0),
+                            // ),
+                            onPressed: () {
+                              String startingPoint =
+                                  startingPointController.text;
+                              String destination = destinationController.text;
+                              print('Starting point $startingPoint');
+                              print(destination);
+                              if (startingPoint.isEmpty ||
+                                  destination.isEmpty) {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: Text('Error'),
+                                    content:
+                                        Text('Please fill in both fields.'),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(context),
+                                        child: Text('OK'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              } else {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => SearchResultPage(
+                                        starting: startingPoint,
+                                        destination: destination),
+                                  ),
+                                );
+                              }
+                            },
+                            child: Text('Search Route'),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -276,7 +266,7 @@ class _ResultPageState extends State<SearchResultPage> {
                             title: Text(
                               '${searchedVehicles[index].name}',
                               style: TextStyle(
-                                color: kblack,
+                                color: ktheme,
                                 fontSize: 18.0,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -295,7 +285,7 @@ class _ResultPageState extends State<SearchResultPage> {
                                 Row(
                                   children: [
                                     Icon(
-                                      Icons.access_time,
+                                      Icons.route_sharp,
                                       size: 16.0,
                                       color: kblack,
                                     ),
@@ -321,7 +311,7 @@ class _ResultPageState extends State<SearchResultPage> {
                                     ),
                                     SizedBox(width: 4.0),
                                     Text(
-                                      'Fares ${fareList[index]}',
+                                      'Rs. ${fareList[index]}',
                                       style: TextStyle(
                                         color: kblack,
                                         fontSize: 14.0,
