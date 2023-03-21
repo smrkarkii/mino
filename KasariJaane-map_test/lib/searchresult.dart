@@ -80,8 +80,12 @@ class _ResultPageState extends State<SearchResultPage> {
 
   void _getData() async {
     routeModel = await (RouteService().getRoutes());
-    print(routeModel);
-    Future.delayed(const Duration(seconds: 1)).then((value) => setState(() {}));
+    Future.delayed(const Duration(seconds: 1)).then((value) {
+      print(routeModel);
+      setState(() {
+        // jsonVehicleOnly = value!.vehicles;
+      });
+    });
   }
 
   void _showOptions(BuildContext context) {
@@ -109,8 +113,10 @@ class _ResultPageState extends State<SearchResultPage> {
 
   @override
   Widget build(BuildContext context) {
+    if (routeModel == null) {
+      print('route model is null');
+    }
     jsonVehicleOnly = routeModel!.vehicles;
-
     print('json vehicle only ${jsonVehicleOnly.length}');
 
 //adding all the routes in jsonRouteOnly (unfilitred)

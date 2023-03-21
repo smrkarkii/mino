@@ -7,10 +7,11 @@ import './model/route_model.dart' as r;
 import './api_service.dart';
 
 import '../components/constants.dart';
+import './RouteDesc.dart';
 
 r.RouteModel? routeModel; //jsonVehicle
-List<dynamic> jsonVehicleOnly = []; //vehicle
-List<dynamic> jsonRouteOnly = []; //routeonly
+List<r.Route> jsonRouteOnly = []; //routeonly
+List<r.Vehicle> jsonVehicleOnly = [];
 
 class MyLogic {
   String startingPoint;
@@ -18,24 +19,26 @@ class MyLogic {
 
   MyLogic({required this.startingPoint, required this.destination});
 
-  List<dynamic> search() {
-    dynamic data = routeModel!.vehicles;
-    List<dynamic> route = [];
-    List<dynamic> results = []; //add fares to it
-    for (var datas in data) {
-      for (var fare in datas.fares) {
-        if (fare.startLocation
-                .toLowerCase()
-                .contains(startingPoint.toLowerCase()) &&
-            fare.endLocation
-                .toLowerCase()
-                .contains(destination.toLowerCase())) {
-          results.add(fare); //only fare model
-          route.add(fare.route); // route of that vehicle
-          break;
+  List<r.Fare> search() {
+    List<r.Vehicle> vehicledata = routeModel!.vehicles;
+    List<r.Stop> stopdata = [];
+
+    List<r.Fare> results = []; //add fares to it
+    int count = 0;
+    for (var vehicle in vehicledata) {
+      for (var route in vehicle.routes) {
+        for (var fare in route.fares) {
+          if (fare.startLocation.toLowerCase() == startingPoint.toLowerCase() &&
+              fare.endLocation.toLowerCase() == destination.toLowerCase()) {
+            results.add(fare); //only fare model
+            count += 1;
+
+            break;
+          }
         }
       }
     }
+    print('count $count');
     return results; //returns the route ids
   }
 
@@ -77,18 +80,9 @@ class _ResultPageState extends State<SearchResultPage> {
 
   void _getData() async {
     routeModel = await (RouteService().getRoutes());
-
-    // print(routeModel);
-
+    print(routeModel);
     Future.delayed(const Duration(seconds: 1)).then((value) => setState(() {}));
   }
-  // void _getData() async {
-  //   routeModel = await RouteService().getRoutes();
-
-  //   setState(() {
-  //     jsonVehicleOnly = routeModel!.vehicles;
-  //   });
-  // }
 
   void _showOptions(BuildContext context) {
     showModalBottomSheet<void>(
@@ -113,25 +107,21 @@ class _ResultPageState extends State<SearchResultPage> {
     );
   }
 
-  // final List<Map<String, dynamic>> routeModel = [
-
   @override
   Widget build(BuildContext context) {
-    // jsonVehicleOnly = routeModel!.vehicles;
-    print(routeModel!.vehicles);
-    if (routeModel != null) {
-      jsonVehicleOnly = routeModel!.vehicles;
-    }
-    print(jsonVehicleOnly[0]);
-    print(routeModel);
+    jsonVehicleOnly = routeModel!.vehicles;
 
-    for (var i in jsonVehicleOnly) {
-      jsonRouteOnly.add(jsonVehicleOnly[0].routes);
+    print('json vehicle only ${jsonVehicleOnly.length}');
+
+//adding all the routes in jsonRouteOnly (unfilitred)
+    for (var vehicle in jsonVehicleOnly) {
+      jsonRouteOnly.addAll(vehicle.routes);
     }
 
     MyLogic logic = MyLogic(startingPoint: 'a', destination: 'b');
 
-    dynamic searchedObject = logic.search();
+    List<r.Fare> searchedObject = logic.search();
+    print('searched objects length${searchedObject.length}');
 
     return routeModel == null
         ? const Center(
@@ -234,20 +224,42 @@ class _ResultPageState extends State<SearchResultPage> {
                   child: ListView.builder(
                     itemCount: searchedObject.length,
                     itemBuilder: (BuildContext context, int index) {
-                      dynamic searchedRouteId = searchedObject.route;
-                      dynamic searchedVehicleId =
-                          jsonRouteOnly[searchedRouteId].vehicle;
-                      var searchedvehicle = []; //vehicle name
-                      var searchedlist = []; //routes
+                      print('searched objects $searchedObject');
+                      print('searached object length ${searchedObject.length}');
+                      //finding list of route ids with matching searches
+                      List<String> fareList = [];
+                      for (var eachfare in searchedObject) {
+                        fareList.add(eachfare.fare);
+                      }
 
-                      for (var vehicle in jsonVehicleOnly) {
-                        searchedvehicle.add(vehicle[searchedVehicleId]);
+                      List<int> searchedRouteId = [];
+                      List<r.Route> searchedRoutes = [];
+                      for (var obj in searchedObject) {
+                        searchedRouteId.add(obj.route);
+                        // print(searchedRouteId);rr
                       }
-                      for (var i in searchedvehicle) {
-                        searchedlist.add(searchedvehicle[i].routes);
+                      print(searchedRouteId); //ok till here
+                      //filtered list of routes
+                      for (var route in jsonRouteOnly) {
+                        if (searchedRouteId.contains(route.id)) {
+                          searchedRoutes.add(route);
+                          // print(route.id);
+                        }
                       }
-                      print('Searched List $searchedlist');
-                      print('vehicle: $searchedvehicle');
+                      print(jsonRouteOnly.length);
+                      List<int> searchedVehicleId = [];
+                      List<r.Vehicle> searchedVehicles = [];
+                      for (var obj in searchedRoutes) {
+                        searchedVehicleId.add(obj.vehicle);
+                        // print(searchedVehicleId);
+                      }
+                      //filtered list of vehicles
+                      for (var vehic in jsonVehicleOnly) {
+                        if (searchedRouteId.contains(vehic.id)) {
+                          searchedVehicles.add(vehic);
+                        }
+                      }
+                      //all stops
 
                       return Card(
                         margin:
@@ -256,26 +268,20 @@ class _ResultPageState extends State<SearchResultPage> {
                           padding: const EdgeInsets.all(8.0),
                           child: ListTile(
                             title: Text(
-                              'Vehicle $searchedvehicle[index].name ',
+                              '${searchedVehicles[index].name}',
                               style: TextStyle(
                                 color: kblack,
                                 fontSize: 18.0,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-
                             // onTap: () => Navigator.push(
-
                             //   context,
-
                             //   MaterialPageRoute(
-
-                            //     builder: (context) => RouteDesc(vehicle1),
-
+                            //     builder: (context) =>
+                            //         RouteDesc(route: $searchedRoutes),
                             //   ),
-
                             // ),
-
                             subtitle: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -289,7 +295,9 @@ class _ResultPageState extends State<SearchResultPage> {
                                     ),
                                     SizedBox(width: 4.0),
                                     Text(
-                                      'Fare $searchedObject[index].fare ',
+                                      '${searchedRoutes[index].stops.map((stop) => stop.name)} '
+                                      // ${searchedRoutes[index].stops} '
+                                      ,
                                       style: TextStyle(
                                         color: kblack,
                                         fontSize: 14.0,
@@ -307,7 +315,7 @@ class _ResultPageState extends State<SearchResultPage> {
                                     ),
                                     SizedBox(width: 4.0),
                                     Text(
-                                      'Routes $searchedlist[index] ',
+                                      'Fares ${fareList[index]}',
                                       style: TextStyle(
                                         color: kblack,
                                         fontSize: 14.0,
@@ -329,885 +337,4 @@ class _ResultPageState extends State<SearchResultPage> {
             ),
           );
   }
-}
-
-
-
-{
-    "vehicles": [
-        {
-            "id": 1,
-            "name": "Sajha Bus",
-            "type": "bus",
-            "routes": [
-                {
-                    "id": 1,
-                    "name": "S1",
-                    "starting_point": "A",
-                    "final_point": "F",
-                    "stops": [
-                        "a":{
-                          "lat":20,
-                          "long":30,
-                          "distance":0
-                        }
-                        "b":{
-                          "lat":20,
-                          "long":30,
-                          "distance":10
-                        }
-                        "c":{
-                          "lat":20,
-                          "long":30,
-                          "distance":20
-                        }
-                        "d":{
-                          "lat":20,
-                          "long":30,
-                          "distance":30
-                        }
-                    ],
-                    "vehicle": 1
-                },
-                {
-                    "id": 2,
-                    "name": "S2",
-                    "starting_point": "G",
-                    "final_point": "L",
-                   "stops": [
-                        "a":{
-                          "lat":20,
-                          "long":30,
-                          "distance":0
-                        }
-                        "b":{
-                          "lat":20,
-                          "long":30,
-                          "distance":10
-                        }
-                        "c":{
-                          "lat":20,
-                          "long":30,
-                          "distance":20
-                        }
-                        "d":{
-                          "lat":20,
-                          "long":30,
-                          "distance":30
-                        }
-                    ],
-                    "vehicle": 1
-                }
-            ],
-            "fares": [
-                {
-                    "id": 1,
-                    "start_location": "A",
-                    "end_location": "B",
-                    "fare": "5.00",
-                    "route": 1
-                },
-                {
-                    "id": 2,
-                    "start_location": "A",
-                    "end_location": "C",
-                    "fare": "10.00",
-                    "route": 1
-                },
-                {
-                    "id": 3,
-                    "start_location": "A",
-                    "end_location": "D",
-                    "fare": "15.00",
-                    "route": 1
-                },
-                {
-                    "id": 4,
-                    "start_location": "A",
-                    "end_location": "E",
-                    "fare": "20.00",
-                    "route": 1
-                },
-                {
-                    "id": 5,
-                    "start_location": "A",
-                    "end_location": "F",
-                    "fare": "25.00",
-                    "route": 1
-                },
-                {
-                    "id": 7,
-                    "start_location": "B",
-                    "end_location": "C",
-                    "fare": "5.00",
-                    "route": 1
-                },
-                {
-                    "id": 8,
-                    "start_location": "B",
-                    "end_location": "D",
-                    "fare": "10.00",
-                    "route": 1
-                },
-                {
-                    "id": 9,
-                    "start_location": "B",
-                    "end_location": "D",
-                    "fare": "10.00",
-                    "route": 1
-                },
-                {
-                    "id": 10,
-                    "start_location": "B",
-                    "end_location": "E",
-                    "fare": "15.00",
-                    "route": 1
-                },
-                {
-                    "id": 11,
-                    "start_location": "B",
-                    "end_location": "E",
-                    "fare": "20.00",
-                    "route": 1
-                },
-                {
-                    "id": 12,
-                    "start_location": "C",
-                    "end_location": "D",
-                    "fare": "5.00",
-                    "route": 1
-                },
-                {
-                    "id": 13,
-                    "start_location": "C",
-                    "end_location": "E",
-                    "fare": "10.00",
-                    "route": 1
-                },
-                {
-                    "id": 14,
-                    "start_location": "C",
-                    "end_location": "F",
-                    "fare": "15.00",
-                    "route": 1
-                },
-                {
-                    "id": 15,
-                    "start_location": "D",
-                    "end_location": "E",
-                    "fare": "5.00",
-                    "route": 1
-                },
-                {
-                    "id": 16,
-                    "start_location": "D",
-                    "end_location": "F",
-                    "fare": "10.00",
-                    "route": 1
-                },
-                {
-                    "id": 17,
-                    "start_location": "E",
-                    "end_location": "F",
-                    "fare": "5.00",
-                    "route": 1
-                },
-                {
-                    "id": 21,
-                    "start_location": "sukedhara",
-                    "end_location": "chappakkarkhana",
-                    "fare": "15.00",
-                    "route": 2
-                }
-            ]
-        },
-        {
-            "id": 2,
-            "name": "Tempo",
-            "type": "tempo",
-            "routes": [
-                {
-                    "id": 5,
-                    "name": "tempo-route1",
-                    "starting_point": "lagankhel",
-                    "final_point": "ratnapark",
-                   "stops": [
-                        "lagankhel":{
-                          "lat":20,
-                          "long":30,
-                          "distance":0
-                        }
-                        "kumaripati":{
-                          "lat":20,
-                          "long":30,
-                          "distance":10
-                        }
-                        "pulchowk":{
-                          "lat":20,
-                          "long":30,
-                          "distance":20
-                        }
-                        "kupondole":{
-                          "lat":20,
-                          "long":30,
-                          "distance":30
-                        }
-                    ],
-                    "vehicle": 2
-                }
-            ],
-            "fares": [
-                {
-                    "id": 23,
-                    "start_location": "sukedhara",
-                    "end_location": "chappakkarkhana",
-                    "fare": "15.00",
-                    "route": 5
-                }
-            ]
-        },
-        {
-            "id": 3,
-            "name": "Nepal Yatayat",
-            "type": "bus",
-            "routes": [
-                {
-                    "id": 6,
-                    "name": "nepalyatayat-route1",
-                    "starting_point": "lagankhel",
-                    "final_point": "ratnapark",
-                    "stops": [
-                        "lagankhel":{
-                          "lat":20,
-                          "long":30,
-                          "distance":0
-                        }
-                        "kumaripati":{
-                          "lat":20,
-                          "long":30,
-                          "distance":10
-                        }
-                        "pulchowk":{
-                          "lat":20,
-                          "long":30,
-                          "distance":20
-                        }
-                        "kupondole":{
-                          "lat":20,
-                          "long":30,
-                          "distance":30
-                        }
-                    ],
-                    "vehicle": 3
-                }
-            ],
-            "fares": []
-        },
-        {
-            "id": 4,
-            "name": "Micro Bus",
-            "type": "microbus",
-            "routes": [
-                {
-                    "id": 4,
-                    "name": "micro-route1",
-                    "starting_point": "lagankhel",
-                    "final_point": "ratnapark",
-                   "stops": [
-                        "lagankhel":{
-                          "lat":20,
-                          "long":30,
-                          "distance":0
-                        }
-                        "kumaripati":{
-                          "lat":20,
-                          "long":30,
-                          "distance":10
-                        }
-                        "pulchowk":{
-                          "lat":20,
-                          "long":30,
-                          "distance":20
-                        }
-                        "kupondole":{
-                          "lat":20,
-                          "long":30,
-                          "distance":30
-                        }
-                    ],
-                    "vehicle": 4
-                }
-            ],
-            "fares": [
-                {
-                    "id": 22,
-                    "start_location": "sukedhara",
-                    "end_location": "chappakkarkhana",
-                    "fare": "15.00",
-                    "route": 4
-                }
-            ]
-        },
-        {
-            "id": 5,
-            "name": "Nepal Yatayat",
-            "type": "bus",
-            "routes": [
-                {
-                    "id": 3,
-                    "name": "route1",
-                    "starting_point": "balkumari",
-                    "final_point": "sukedhara",
-                    "stops": [
-                        "a":{
-                          "lat":20,
-                          "long":30,
-                          "distance":0
-                        }
-                        "b":{
-                          "lat":20,
-                          "long":30,
-                          "distance":10
-                        }
-                        "c":{
-                          "lat":20,
-                          "long":30,
-                          "distance":20
-                        }
-                        "d":{
-                          "lat":20,
-                          "long":30,
-                          "distance":30
-                        }
-                    ],
-                    "vehicle": 5
-                }
-            ],
-            "fares": [
-                {
-                    "id": 18,
-                    "start_location": "sukedhara",
-                    "end_location": "dhumbarahi",
-                    "fare": "15.00",
-                    "route": 3
-                },
-                {
-                    "id": 19,
-                    "start_location": "sukedhara",
-                    "end_location": "chappakkarkhana",
-                    "fare": "15.00",
-                    "route": 3
-                },
-                {
-                    "id": 20,
-                    "start_location": "sukedhara",
-                    "end_location": "dhumbarahi",
-                    "fare": "15.00",
-                    "route": 3
-                }
-            ]
-        }
-    ]
-}
-
-[
-    {
-        "id": 1,
-        "name": "S1",
-        "starting_point": "A",
-        "final_point": "F",
-       "stops": [
-                        "a":{
-                          "lat":20,
-                          "long":30,
-                          "distance":0
-                        }
-                        "b":{
-                          "lat":20,
-                          "long":30,
-                          "distance":10
-                        }
-                        "c":{
-                          "lat":20,
-                          "long":30,
-                          "distance":20
-                        }
-                        "d":{
-                          "lat":20,
-                          "long":30,
-                          "distance":30
-                        }
-                    ],
-        "vehicle": 1
-    },
-    {
-        "id": 2,
-        "name": "S2",
-        "starting_point": "G",
-        "final_point": "L",
-       "stops": [
-                        "a":{
-                          "lat":20,
-                          "long":30,
-                          "distance":0
-                        }
-                        "b":{
-                          "lat":20,
-                          "long":30,
-                          "distance":10
-                        }
-                        "c":{
-                          "lat":20,
-                          "long":30,
-                          "distance":20
-                        }
-                        "d":{
-                          "lat":20,
-                          "long":30,
-                          "distance":30
-                        }
-                    ],
-        "vehicle": 1
-    }
-]
-
-
-
-{
-    "vehicles": [
-        {
-            "id": 1,
-            "name": "Sajha Bus",
-            "type": "bus",
-            "routes": [
-                {
-                    "id": 1,
-                    "name": "S1",
-                    "starting_point": "A",
-                    "final_point": "F",
-                    "stops": [
-                        "a":{
-                          "lat":20,
-                          "long":30,
-                          "distance":0
-                        },
-                        "b":{
-                          "lat":20,
-                          "long":30,
-                          "distance":10
-                        },
-                        "c":{
-                          "lat":20,
-                          "long":30,
-                          "distance":20
-                        },
-                        "d":{
-                          "lat":20,
-                          "long":30,
-                          "distance":30
-                        },
-                    ],
-                    "vehicle": 1
-                },
-                {
-                    "id": 2,
-                    "name": "S2",
-                    "starting_point": "G",
-                    "final_point": "L",
-                   "stops": [
-                        "a":{
-                          "lat":20,
-                          "long":30,
-                          "distance":0
-                        },
-                        "b":{
-                          "lat":20,
-                          "long":30,
-                          "distance":10
-                        },
-                        "c":{
-                          "lat":20,
-                          "long":30,
-                          "distance":20
-                        },
-                        "d":{
-                          "lat":20,
-                          "long":30,
-                          "distance":30
-                        },
-                    ],
-                    "vehicle": 1
-                }
-            ],
-            "fares": [
-                {
-                    "id": 1,
-                    "start_location": "A",
-                    "end_location": "B",
-                    "fare": "5.00",
-                    "route": 1
-                },
-                {
-                    "id": 2,
-                    "start_location": "A",
-                    "end_location": "C",
-                    "fare": "10.00",
-                    "route": 1
-                },
-                {
-                    "id": 3,
-                    "start_location": "A",
-                    "end_location": "D",
-                    "fare": "15.00",
-                    "route": 1
-                },
-                {
-                    "id": 4,
-                    "start_location": "A",
-                    "end_location": "E",
-                    "fare": "20.00",
-                    "route": 1
-                },
-                {
-                    "id": 5,
-                    "start_location": "A",
-                    "end_location": "F",
-                    "fare": "25.00",
-                    "route": 1
-                },
-                {
-                    "id": 7,
-                    "start_location": "B",
-                    "end_location": "C",
-                    "fare": "5.00",
-                    "route": 1
-                },
-                {
-                    "id": 8,
-                    "start_location": "B",
-                    "end_location": "D",
-                    "fare": "10.00",
-                    "route": 1
-                },
-                {
-                    "id": 9,
-                    "start_location": "B",
-                    "end_location": "D",
-                    "fare": "10.00",
-                    "route": 1
-                },
-                {
-                    "id": 10,
-                    "start_location": "B",
-                    "end_location": "E",
-                    "fare": "15.00",
-                    "route": 1
-                },
-                {
-                    "id": 11,
-                    "start_location": "B",
-                    "end_location": "E",
-                    "fare": "20.00",
-                    "route": 1
-                },
-                {
-                    "id": 12,
-                    "start_location": "C",
-                    "end_location": "D",
-                    "fare": "5.00",
-                    "route": 1
-                },
-                {
-                    "id": 13,
-                    "start_location": "C",
-                    "end_location": "E",
-                    "fare": "10.00",
-                    "route": 1
-                },
-                {
-                    "id": 14,
-                    "start_location": "C",
-                    "end_location": "F",
-                    "fare": "15.00",
-                    "route": 1
-                },
-                {
-                    "id": 15,
-                    "start_location": "D",
-                    "end_location": "E",
-                    "fare": "5.00",
-                    "route": 1
-                },
-                {
-                    "id": 16,
-                    "start_location": "D",
-                    "end_location": "F",
-                    "fare": "10.00",
-                    "route": 1
-                },
-                {
-                    "id": 17,
-                    "start_location": "E",
-                    "end_location": "F",
-                    "fare": "5.00",
-                    "route": 1
-                },
-                {
-                    "id": 21,
-                    "start_location": "sukedhara",
-                    "end_location": "chappakkarkhana",
-                    "fare": "15.00",
-                    "route": 2
-                }
-            ]
-        },
-        {
-            "id": 2,
-            "name": "Tempo",
-            "type": "tempo",
-            "routes": [
-                {
-                    "id": 5,
-                    "name": "tempo-route1",
-                    "starting_point": "lagankhel",
-                    "final_point": "ratnapark",
-                  "stops": [
-                        "a":{
-                          "lat":20,
-                          "long":30,
-                          "distance":0
-                        },
-                        "b":{
-                          "lat":20,
-                          "long":30,
-                          "distance":10
-                        },
-                        "c":{
-                          "lat":20,
-                          "long":30,
-                          "distance":20
-                        },
-                        "d":{
-                          "lat":20,
-                          "long":30,
-                          "distance":30
-                        },
-                    ],
-                    "vehicle": 2
-                }
-            ],
-            "fares": [
-                {
-                    "id": 23,
-                    "start_location": "sukedhara",
-                    "end_location": "chappakkarkhana",
-                    "fare": "15.00",
-                    "route": 5
-                }
-            ]
-        },
-        {
-            "id": 3,
-            "name": "Nepal Yatayat",
-            "type": "bus",
-            "routes": [
-                {
-                    "id": 6,
-                    "name": "nepalyatayat-route1",
-                    "starting_point": "lagankhel",
-                    "final_point": "ratnapark",
-                    "stops": [
-                        "lagankhel":{
-                          "lat":20,
-                          "long":30,
-                          "distance":0
-                        }
-                        "kumaripati":{
-                          "lat":20,
-                          "long":30,
-                          "distance":10
-                        }
-                        "pulchowk":{
-                          "lat":20,
-                          "long":30,
-                          "distance":20
-                        }
-                        "kupondole":{
-                          "lat":20,
-                          "long":30,
-                          "distance":30
-                        }
-                    ],
-                    "vehicle": 3
-                }
-            ],
-            "fares": []
-        },
-        {
-            "id": 4,
-            "name": "Micro Bus",
-            "type": "microbus",
-            "routes": [
-                {
-                    "id": 4,
-                    "name": "micro-route1",
-                    "starting_point": "lagankhel",
-                    "final_point": "ratnapark",
-                  "stops": [
-                        "a":{
-                          "lat":20,
-                          "long":30,
-                          "distance":0
-                        },
-                        "b":{
-                          "lat":20,
-                          "long":30,
-                          "distance":10
-                        },
-                        "c":{
-                          "lat":20,
-                          "long":30,
-                          "distance":20
-                        },
-                        "d":{
-                          "lat":20,
-                          "long":30,
-                          "distance":30
-                        },
-                    ],
-                    "vehicle": 4
-                }
-            ],
-            "fares": [
-                {
-                    "id": 22,
-                    "start_location": "sukedhara",
-                    "end_location": "chappakkarkhana",
-                    "fare": "15.00",
-                    "route": 4
-                }
-            ]
-        },
-        {
-            "id": 5,
-            "name": "Nepal Yatayat",
-            "type": "bus",
-            "routes": [
-                {
-                    "id": 3,
-                    "name": "route1",
-                    "starting_point": "balkumari",
-                    "final_point": "sukedhara",
-                   "stops": [
-                        "a":{
-                          "lat":20,
-                          "long":30,
-                          "distance":0
-                        },
-                        "b":{
-                          "lat":20,
-                          "long":30,
-                          "distance":10
-                        },
-                        "c":{
-                          "lat":20,
-                          "long":30,
-                          "distance":20
-                        },
-                        "d":{
-                          "lat":20,
-                          "long":30,
-                          "distance":30
-                        },
-                    ],
-                    "vehicle": 5
-                }
-            ],
-            "fares": [
-                {
-                    "id": 18,
-                    "start_location": "sukedhara",
-                    "end_location": "dhumbarahi",
-                    "fare": "15.00",
-                    "route": 3
-                },
-                {
-                    "id": 19,
-                    "start_location": "sukedhara",
-                    "end_location": "chappakkarkhana",
-                    "fare": "15.00",
-                    "route": 3
-                },
-                {
-                    "id": 20,
-                    "start_location": "sukedhara",
-                    "end_location": "dhumbarahi",
-                    "fare": "15.00",
-                    "route": 3
-                }
-            ]
-        }
-    ]
-}
-
-[
-    {
-        "id": 1,
-        "name": "S1",
-        "starting_point": "A",
-        "final_point": "F",
-       "stops": [
-                        "a":{
-                          "lat":20,
-                          "long":30,
-                          "distance":0
-                        },
-                        "b":{
-                          "lat":20,
-                          "long":30,
-                          "distance":10
-                        },
-                        "c":{
-                          "lat":20,
-                          "long":30,
-                          "distance":20
-                        },
-                        "d":{
-                          "lat":20,
-                          "long":30,
-                          "distance":30
-                        },
-                    ],
-        "vehicle": 1
-    },
-    {
-        "id": 2,
-        "name": "S2",
-        "starting_point": "G",
-        "final_point": "L",
-       "stops": [
-                        "a":{
-                          "lat":20,
-                          "long":30,
-                          "distance":0
-                        },
-                        "b":{
-                          "lat":20,
-                          "long":30,
-                          "distance":10
-                        },
-                        "c":{
-                          "lat":20,
-                          "long":30,
-                          "distance":20
-                        },
-                        "d":{
-                          "lat":20,
-                          "long":30,
-                          "distance":30
-                        },
-                    ],
-        "vehicle": 1
-    }
-]
 }
