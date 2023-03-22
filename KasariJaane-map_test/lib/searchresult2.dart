@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 
 import 'package:flutter/services.dart';
@@ -7,11 +9,147 @@ import './model/route_model.dart' as r;
 import './api_service.dart';
 
 import '../components/constants.dart';
+// import './components/constants.dart';
+import './components/searchbar.dart';
+import './components/searchbar2.dart';
 import './RouteDesc.dart';
+import 'dart:convert';
 
 r.RouteModel? routeModel; //jsonVehicle
 List<r.Route> jsonRouteOnly = []; //routeonly
 List<r.Vehicle> jsonVehicleOnly = [];
+String start = "";
+String finish = "";
+
+late String commonPo;
+
+class RouteFinder {
+  List<Map<String, dynamic>> places = []; //stops -> routes
+  List<Map<String, dynamic>> listroutes = []; //routes -> stops
+  Map<String, List<String>> groupedRoutes = {}; //common eliminated
+  late String commonPo;
+
+  List<Map<String, dynamic>> getPlaces() {
+    // var data = jsonDecode(jsonString);
+    List<r.Vehicle> vehicledata = routeModel!.vehicles;
+    // print('vehicledata: $vehicledata');
+    for (var vehicle in vehicledata) {
+      var routes = vehicle.routes;
+      for (var j = 0; j < routes.length; j++) {
+        var route = routes[j];
+        for (var stop in route.stops) {
+          listroutes.add({'route': route.name, 'stopname': stop.name});
+
+          places.add({
+            'name': stop.name,
+            'route_name': route.name,
+          });
+        }
+      }
+    }
+    // print("list routes $listroutes");
+    // print("places $places");
+    // print("list routes $listroutes");
+    // remove duplicates and group by name
+    Map<String, List<String>> groupedPlaces = {};
+
+    places.forEach((place) {
+      String placename = place['name'];
+      String routename = place['route_name'];
+      if (groupedPlaces.containsKey(placename)) {
+        if (!groupedPlaces[placename]!.contains(routename)) {
+          groupedPlaces[placename]!.add(routename);
+        }
+      } else {
+        groupedPlaces[placename] = [routename];
+      }
+      // print('grouped places is $groupedPlaces');
+    });
+    listroutes.forEach((listroute) {
+      String route = listroute['route'];
+      String stopname = listroute['stopname'];
+      if (groupedRoutes.containsKey(route)) {
+        if (!groupedRoutes[route]!.contains(stopname)) {
+          groupedRoutes[route]!.add(stopname);
+        }
+      } else {
+        groupedRoutes[route] = [stopname];
+      }
+    });
+    // print('groupedRoutes: $groupedRoutes');
+
+    // convert to list of maps
+    List<Map<String, dynamic>> uniquePlaces = [];
+    groupedPlaces.forEach((name, routename) {
+      uniquePlaces.add({
+        'name': name,
+        'routename': routename,
+      });
+    });
+    // print("unique places $uniquePlaces"); //duplircate remocal
+    return uniquePlaces;
+  }
+
+  List findSpecific(String query) {
+    // print('I got called - findSpecific()');
+    var allplaces = getPlaces();
+    // print('allplaces: $allplaces');
+    var foundplace = [];
+    for (var place in allplaces) {
+      if (place['name'] == query) {
+        foundplace.add(place);
+      }
+    }
+    // print('foundplaces: $foundplace');
+    return foundplace;
+  }
+
+  List<String> findcommon(
+      List<String> startPointRout, List<String> endPointRout) {
+    Set<String> sPr = {};
+    Set<String> ePr = {};
+    for (String key in startPointRout.toList()) {
+      sPr.addAll(groupedRoutes[key] as Iterable<String>);
+    }
+    for (String key in endPointRout.toList()) {
+      ePr.addAll(groupedRoutes[key] as Iterable<String>);
+    }
+    // Find common elements
+    Set<String> commonElements = sPr.intersection(ePr);
+
+    // Find common point
+    commonPo = commonElements.first;
+    List commonP = findSpecific(commonElements.first);
+    List<String> b = commonP[0]['routename'];
+    List<String> result = b
+        .where((element) =>
+            endPointRout.contains(element) || startPointRout.contains(element))
+        .toList();
+    List<String> commonPoint = [];
+    commonPoint.addAll(result);
+    return commonPoint;
+  }
+
+  List<String> findMatchingIds(
+      List<dynamic> startPointRoutes, List<dynamic> endPointRoutes) {
+    List<String> matchingIds = [];
+    // for (var startPoint in startPointRoutes) {
+    //   for (var endPoint in endPointRoutes) {
+    //     for (var startroute in startPoint['routename']) {
+    //       if (endPoint['routename'].contains(startroute)) {
+    //         matchingIds.add(startroute);
+    //       }
+    //     }
+    //   }
+    // }
+
+    List<String> common = findcommon(
+        startPointRoutes[0]['routename'], endPointRoutes[0]['routename']);
+    matchingIds.addAll(common);
+
+    return matchingIds;
+  }
+}
 
 class MyLogic {
   String startingPoint;
@@ -31,6 +169,8 @@ class MyLogic {
           if (fare.startLocation.toLowerCase() == startingPoint.toLowerCase() &&
               fare.endLocation.toLowerCase() == destination.toLowerCase()) {
             results.add(fare); //only fare model
+            start = startingPoint;
+            finish = destination;
             count += 1;
 
             break;
@@ -40,11 +180,6 @@ class MyLogic {
     }
     print('count $count');
     return results; //returns the route ids
-  }
-
-  List<String> finalRoutes() {
-    // code for generating final routes
-    return ['Route 1', 'Route 2', 'Route 3'];
   }
 }
 
@@ -61,13 +196,9 @@ class SearchResultPage extends StatefulWidget {
 }
 
 class _ResultPageState extends State<SearchResultPage> {
-  List<String> _options = [
-    'Kathmandu',
-    'Pokhara',
-    'Chitwan',
-    'Lumbini',
-    'Bhaktapur'
-  ];
+  TextEditingController startingPointController = TextEditingController();
+
+  TextEditingController destinationController = TextEditingController();
 
   String? _selectedOption;
 
@@ -80,47 +211,83 @@ class _ResultPageState extends State<SearchResultPage> {
 
   void _getData() async {
     routeModel = await (RouteService().getRoutes());
-    print(routeModel);
-    Future.delayed(const Duration(seconds: 1)).then((value) => setState(() {}));
+    Future.delayed(const Duration(seconds: 1)).then((value) {
+      // print(' route model $routeModel');
+      setState(() {
+        // jsonVehicleOnly = value!.vehicles;
+      });
+    });
   }
 
-  void _showOptions(BuildContext context) {
-    showModalBottomSheet<void>(
-      context: context,
-      builder: (BuildContext context) {
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: _options.map((option) {
-            return ListTile(
-              title: Text(option),
-              onTap: () {
-                setState(() {
-                  _selectedOption = option;
-                });
+  // void _showOptions(BuildContext context) {
+  //   showModalBottomSheet<void>(
+  //     context: context,
+  //     builder: (BuildContext context) {
+  //       return Column(
+  //         mainAxisSize: MainAxisSize.min,
+  //         children: _options.map((option) {
+  //           return ListTile(
+  //             title: Text(option),
+  //             onTap: () {
+  //               setState(() {
+  //                 _selectedOption = option;
+  //               });
 
-                Navigator.pop(context);
-              },
-            );
-          }).toList(),
-        );
-      },
-    );
-  }
+  //               Navigator.pop(context);
+  //             },
+  //           );
+  //         }).toList(),
+  //       );
+  //     },
+  //   );
+  // }
 
   @override
   Widget build(BuildContext context) {
     jsonVehicleOnly = routeModel!.vehicles;
-
-    print('json vehicle only ${jsonVehicleOnly.length}');
+    // print("route model $routeModel");
+    // print('json vehicle only ${jsonVehicleOnly.length}');
 
 //adding all the routes in jsonRouteOnly (unfilitred)
     for (var vehicle in jsonVehicleOnly) {
       jsonRouteOnly.addAll(vehicle.routes);
     }
 
-    MyLogic logic = MyLogic(startingPoint: 'a', destination: 'b');
+    MyLogic logic = MyLogic(startingPoint: 'satdobato', destination: 'chapli');
 
     List<r.Fare> searchedObject = logic.search();
+    print(searchedObject[0].fare);
+
+    if (searchedObject.isEmpty) {
+      print("no direct routes, now finding indirect routes");
+      RouteFinder R = RouteFinder();
+      var startPointRoutes = R.findSpecific('satdobato');
+      var endPointRoutes = R.findSpecific('chapli');
+
+      List<String> matching =
+          R.findMatchingIds(startPointRoutes, endPointRoutes);
+      // print('uniquie routes $unique')
+      print('matching $matching');
+      matching = matching.reversed.toList();
+      MyLogic first =
+          MyLogic(startingPoint: 'satdobato', destination: R.commonPo);
+      MyLogic second =
+          MyLogic(startingPoint: R.commonPo, destination: 'chapli');
+
+      // List<r.Fare> firstFare = first.search();
+      // List<r.Fare> secondFare = second.search();
+      // print("and ${firstFare.length}");
+      // print("and ${secondFare.length}");
+      //TODO create new function for finding the fares from matching
+
+      // searchedObject.add(firstFare);
+      print('print');
+      print('startPointroutes $startPointRoutes');
+      print('endPointRoutes $endPointRoutes');
+      print('R.commonPO ${R.commonPo}');
+    }
+
+    print(searchedObject);
     print('searched objects length${searchedObject.length}');
 
     return routeModel == null
@@ -129,8 +296,8 @@ class _ResultPageState extends State<SearchResultPage> {
           )
         : Scaffold(
             appBar: AppBar(
-              title: Text('Search Results'),
-              backgroundColor: kdarkpurple,
+              title: Text('Available Routes'),
+              backgroundColor: ktheme,
               iconTheme: IconThemeData(color: Colors.white),
               toolbarTextStyle: TextTheme(
                 headline6: TextStyle(color: Colors.white, fontSize: 18),
@@ -147,75 +314,62 @@ class _ResultPageState extends State<SearchResultPage> {
                   margin: EdgeInsets.all(16),
                   child: Column(
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text('From: ', style: TextStyle(color: kblack)),
-                          DropdownButton<String>(
-                            value: 'Kathmandu',
-                            onChanged: (String? newValue) {},
-                            items: <String>[
-                              'Kathmandu',
-                              'Pokhara',
-                              'Chitwan',
-                              'Lumbini',
-                              'Bhaktapur'
-                            ].map((String value) {
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: Text(value,
-                                    style: TextStyle(color: kgreen)),
-                              );
-                            }).toList(),
-                            hint: Text('From', style: TextStyle(color: kgreen)),
-                          ),
-                        ],
+                      SearchBar2(
+                        label: start,
+                        controller: startingPointController,
+                      ),
+                      SearchBar(
+                        label: finish,
+                        controller: destinationController,
                       ),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Row(
-                            children: [
-                              Text('To: ', style: TextStyle(color: kblack)),
-                              DropdownButton<String>(
-                                value: 'Pokhara',
-                                onChanged: (String? newValue) {},
-                                items: <String>[
-                                  'Kathmandu',
-                                  'Pokhara',
-                                  'Chitwan',
-                                  'Lumbini',
-                                  'Bhaktapur'
-                                ].map((String value) {
-                                  return DropdownMenuItem<String>(
-                                    value: value,
-                                    child: Text(value,
-                                        style: TextStyle(color: kblack)),
-                                  );
-                                }).toList(),
-                                hint:
-                                    Text('To', style: TextStyle(color: kblack)),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                foregroundColor: Colors.white,
-
-                                backgroundColor: kdarkpurple, // text color
-                              ),
-                              onPressed: () {},
-                              child: Text('Search Route'),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              foregroundColor: Colors.white,
+                              backgroundColor: ktheme, // text color
+                              minimumSize: Size(200, 50),
                             ),
-                          ],
-                        ),
+                            // shape: RoundedRectangleBorder(
+                            //   borderRadius: BorderRadius.circular(0),
+                            // ),
+                            onPressed: () {
+                              String startingPoint =
+                                  startingPointController.text;
+                              String destination = destinationController.text;
+                              print('Starting point $startingPoint');
+                              print(destination);
+                              if (startingPoint.isEmpty ||
+                                  destination.isEmpty) {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: Text('Error'),
+                                    content:
+                                        Text('Please fill in both fields.'),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(context),
+                                        child: Text('OK'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              } else {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => SearchResultPage(
+                                        starting: startingPoint,
+                                        destination: destination),
+                                  ),
+                                );
+                              }
+                            },
+                            child: Text('Search Route'),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -238,7 +392,7 @@ class _ResultPageState extends State<SearchResultPage> {
                         searchedRouteId.add(obj.route);
                         // print(searchedRouteId);rr
                       }
-                      print(searchedRouteId); //ok till here
+                      // print(searchedRouteId); //ok till here
                       //filtered list of routes
                       for (var route in jsonRouteOnly) {
                         if (searchedRouteId.contains(route.id)) {
@@ -246,7 +400,7 @@ class _ResultPageState extends State<SearchResultPage> {
                           // print(route.id);
                         }
                       }
-                      print(jsonRouteOnly.length);
+                      // print(jsonRouteOnly.length);
                       List<int> searchedVehicleId = [];
                       List<r.Vehicle> searchedVehicles = [];
                       for (var obj in searchedRoutes) {
@@ -270,7 +424,7 @@ class _ResultPageState extends State<SearchResultPage> {
                             title: Text(
                               '${searchedVehicles[index].name}',
                               style: TextStyle(
-                                color: kblack,
+                                color: ktheme,
                                 fontSize: 18.0,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -289,18 +443,20 @@ class _ResultPageState extends State<SearchResultPage> {
                                 Row(
                                   children: [
                                     Icon(
-                                      Icons.access_time,
+                                      Icons.route_sharp,
                                       size: 16.0,
                                       color: kblack,
                                     ),
                                     SizedBox(width: 4.0),
-                                    Text(
-                                      '${searchedRoutes[index].stops.map((stop) => stop.name)} '
-                                      // ${searchedRoutes[index].stops} '
-                                      ,
-                                      style: TextStyle(
-                                        color: kblack,
-                                        fontSize: 14.0,
+                                    Expanded(
+                                      child: Text(
+                                        '${searchedRoutes[index].stops.map((stop) => stop.name)} '
+                                        // ${searchedRoutes[index].stops} '
+                                        ,
+                                        style: TextStyle(
+                                          color: kblack,
+                                          fontSize: 14.0,
+                                        ),
                                       ),
                                     ),
                                   ],
@@ -315,7 +471,7 @@ class _ResultPageState extends State<SearchResultPage> {
                                     ),
                                     SizedBox(width: 4.0),
                                     Text(
-                                      'Fares ${fareList[index]}',
+                                      'Rs. ${fareList[index]}',
                                       style: TextStyle(
                                         color: kblack,
                                         fontSize: 14.0,

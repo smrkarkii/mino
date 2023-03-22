@@ -33,8 +33,9 @@ dependencies:
     sdk: flutter
 
   latlong: ^0.6.1
+  flutter_typeahead: ^3.1.0
   flutter_map: any
-  flutter_map_marker_cluster: any
+  # flutter_map_marker_clustefr: any
   location: ^4.3.0
   geolocator: ^7.7.0
   http: ^0.13.5

@@ -11,6 +11,7 @@ urlpatterns = [
     path('routes', views.RoutesList.as_view(), name="Route"),
     path('fare', views.FareList.as_view(), name="Fares"),
     path('vehicle', views.VehicleList.as_view(), name="Vehicle"),
+    path('stops', views.StopsList.as_view(), name="Stops"),
     path('data', views.AllDataView.as_view(), name="Data"),
     path('trueformat', views.custom_view.as_view(), name="True Formatted Data"),
     path('falseformat', views.custom_view2.as_view(), name="False formatted Data"),

@@ -19,7 +19,47 @@ import 'menu/aboutus.dart';
 import 'menu/news.dart';
 import 'menu/notifications.dart';
 import 'menu/profile.dart';
+
 // import 'menu/setting.dart';
+List<String> stopsOptions = [
+  'Satdobato',
+  'Gwarko',
+  'Balkumari',
+  'Koteshwor',
+  'Lagankhel',
+  'Kumaripati',
+  'Jawalakhel',
+  'Pulchowk',
+  'Kupondole',
+  'Tripureshwor',
+  'Tinkune',
+  'Shantinagar',
+  'Baneshwor',
+  'Babarmahal',
+  'Maitighar',
+  'Thapathali',
+  'Kupondole',
+  'Pulchowk',
+  'Jawalakhel',
+  'Nepal Wayu Sewa',
+  'Jamal',
+  'Lainchaur',
+  'Lazimpat',
+  'Panipokhari',
+  'Rastrapati Bhawan',
+  'Teaching Hospital',
+  'Narayan Gopal Chowk',
+  'Gangalal Hospital',
+  'Neuro Hospital',
+  'Goulfutar',
+  'Telecom Chowk',
+  'Hattigauda',
+  'Chapli',
+  'LagankhelS',
+  'LagankhelE',
+  'Deuba Chowk',
+  'Budhanilkantha'
+];
 
 void main() => runApp(
       MaterialApp(

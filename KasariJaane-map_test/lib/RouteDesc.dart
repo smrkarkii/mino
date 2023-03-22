@@ -1,20 +1,16 @@
 import 'package:flutter/material.dart';
 
 import 'components/constants.dart';
+import './model/route_model.dart' as r;
 
 class RouteDesc extends StatelessWidget {
-  final dynamic route;
-
+  r.Vehicle route;
   RouteDesc({Key? key, required this.route}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
+    print(route);
     List<String> stops = [];
-    if (route['stops'] is List) {
-      stops = route['stops'];
-    } else if (route['stops'] is Set) {
-      stops = route['stops'].toList();
-    }
-
     return Scaffold(
       appBar: AppBar(
         backgroundColor: kdarkpurple,
@@ -33,17 +29,17 @@ class RouteDesc extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '${route['name']}',
+              '${route.name}',
               style: TextStyle(fontSize: 28.0, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 8.0),
             Text(
-              'Route: ${route['id']}',
+              'Route: ${route.id}',
               style: TextStyle(fontSize: 16.0),
             ),
             SizedBox(height: 16.0),
             Text(
-              'Type: ${route['type']}',
+              'Type: ${route.type}',
               style: TextStyle(fontSize: 16.0),
             ),
             SizedBox(height: 8.0),

@@ -1,3 +1,6 @@
+import 'dart:ui';
+
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter/services.dart';
@@ -11,12 +14,144 @@ import '../components/constants.dart';
 import './components/searchbar.dart';
 import './components/searchbar2.dart';
 import './RouteDesc.dart';
+import 'dart:convert';
 
 r.RouteModel? routeModel; //jsonVehicle
 List<r.Route> jsonRouteOnly = []; //routeonly
 List<r.Vehicle> jsonVehicleOnly = [];
 String start = "";
 String finish = "";
+
+late String commonPo;
+bool isDirect = false;
+
+class RouteFinder {
+  List<Map<String, dynamic>> places = []; //stops -> routes
+  List<Map<String, dynamic>> listroutes = []; //routes -> stops
+  Map<String, List<String>> groupedRoutes = {}; //common eliminated
+  late String commonPo;
+
+  List<Map<String, dynamic>> getPlaces() {
+    // var data = jsonDecode(jsonString);
+    List<r.Vehicle> vehicledata = routeModel!.vehicles;
+    // print('vehicledata: $vehicledata');
+    for (var vehicle in vehicledata) {
+      var routes = vehicle.routes;
+      for (var j = 0; j < routes.length; j++) {
+        var route = routes[j];
+        for (var stop in route.stops) {
+          listroutes.add({'route': route.name, 'stopname': stop.name});
+
+          places.add({
+            'name': stop.name,
+            'route_name': route.name,
+          });
+        }
+      }
+    }
+    // print("list routes $listroutes");
+    // print("places $places");
+    // print("list routes $listroutes");
+    // remove duplicates and group by name
+    Map<String, List<String>> groupedPlaces = {};
+
+    places.forEach((place) {
+      String placename = place['name'];
+      String routename = place['route_name'];
+      if (groupedPlaces.containsKey(placename)) {
+        if (!groupedPlaces[placename]!.contains(routename)) {
+          groupedPlaces[placename]!.add(routename);
+        }
+      } else {
+        groupedPlaces[placename] = [routename];
+      }
+      // print('grouped places is $groupedPlaces');
+    });
+    listroutes.forEach((listroute) {
+      String route = listroute['route'];
+      String stopname = listroute['stopname'];
+      if (groupedRoutes.containsKey(route)) {
+        if (!groupedRoutes[route]!.contains(stopname)) {
+          groupedRoutes[route]!.add(stopname);
+        }
+      } else {
+        groupedRoutes[route] = [stopname];
+      }
+    });
+    // print('groupedRoutes: $groupedRoutes');
+
+    // convert to list of maps
+    List<Map<String, dynamic>> uniquePlaces = [];
+    groupedPlaces.forEach((name, routename) {
+      uniquePlaces.add({
+        'name': name,
+        'routename': routename,
+      });
+    });
+    // print("unique places $uniquePlaces"); //duplircate remocal
+    return uniquePlaces;
+  }
+
+  List findSpecific(String query) {
+    // print('I got called - findSpecific()');
+    var allplaces = getPlaces();
+    // print('allplaces: $allplaces');
+    var foundplace = [];
+    for (var place in allplaces) {
+      if (place['name'] == query) {
+        foundplace.add(place);
+      }
+    }
+    // print('foundplaces: $foundplace');
+    return foundplace;
+  }
+
+  List<String> findcommon(
+      List<String> startPointRout, List<String> endPointRout) {
+    Set<String> sPr = {};
+    Set<String> ePr = {};
+    for (String key in startPointRout.toList()) {
+      sPr.addAll(groupedRoutes[key] as Iterable<String>);
+    }
+    for (String key in endPointRout.toList()) {
+      ePr.addAll(groupedRoutes[key] as Iterable<String>);
+    }
+    // Find common elements
+    Set<String> commonElements = sPr.intersection(ePr);
+
+    // Find common point
+    commonPo = commonElements.first;
+    List commonP = findSpecific(commonElements.first);
+    List<String> b = commonP[0]['routename'];
+    List<String> result = b
+        .where((element) =>
+            endPointRout.contains(element) || startPointRout.contains(element))
+        .toList();
+    List<String> commonPoint = [];
+    commonPoint.addAll(result);
+    return commonPoint;
+  }
+
+  List<String> findMatchingIds(
+      List<dynamic> startPointRoutes, List<dynamic> endPointRoutes) {
+    List<String> matchingIds = [];
+    // for (var startPoint in startPointRoutes) {
+    //   for (var endPoint in endPointRoutes) {
+    //     for (var startroute in startPoint['routename']) {
+    //       if (endPoint['routename'].contains(startroute)) {
+    //         matchingIds.add(startroute);
+    //       }
+    //     }
+    //   }
+    // }
+
+    List<String> common = findcommon(
+        startPointRoutes[0]['routename'], endPointRoutes[0]['routename']);
+    matchingIds.addAll(common);
+
+    return matchingIds;
+  }
+}
 
 class MyLogic {
   String startingPoint;
@@ -47,11 +182,6 @@ class MyLogic {
     }
     print('count $count');
     return results; //returns the route ids
-  }
-
-  List<String> finalRoutes() {
-    // code for generating final routes
-    return ['Route 1', 'Route 2', 'Route 3'];
   }
 }
 
@@ -84,7 +214,7 @@ class _ResultPageState extends State<SearchResultPage> {
   void _getData() async {
     routeModel = await (RouteService().getRoutes());
     Future.delayed(const Duration(seconds: 1)).then((value) {
-      print(routeModel);
+      // print(' route model $routeModel');
       setState(() {
         // jsonVehicleOnly = value!.vehicles;
       });
@@ -116,20 +246,62 @@ class _ResultPageState extends State<SearchResultPage> {
 
   @override
   Widget build(BuildContext context) {
-    if (routeModel == null) {
-      print('route model is null');
-    }
     jsonVehicleOnly = routeModel!.vehicles;
-    print('json vehicle only ${jsonVehicleOnly.length}');
+    // print("route model $routeModel");
+    // print('json vehicle only ${jsonVehicleOnly.length}');
 
 //adding all the routes in jsonRouteOnly (unfilitred)
     for (var vehicle in jsonVehicleOnly) {
       jsonRouteOnly.addAll(vehicle.routes);
     }
 
-    MyLogic logic = MyLogic(startingPoint: 'a', destination: 'b');
+    MyLogic logic = MyLogic(startingPoint: 'Satdobato', destination: 'Chapli');
 
     List<r.Fare> searchedObject = logic.search();
+
+    if (searchedObject.isEmpty) {
+      isDirect = false;
+      RouteFinder R = RouteFinder();
+      var startPointRoutes = R.findSpecific('Satdobato');
+      var endPointRoutes = R.findSpecific('Chapli');
+
+      List<String> matching =
+          R.findMatchingIds(startPointRoutes, endPointRoutes);
+      // print('uniquie routes $unique')
+      print('matching $matching');
+
+      List<r.Fare> findmatchingfaremodel(query) {
+        List<r.Vehicle> vehicledata = routeModel!.vehicles;
+        print(query);
+        List<r.Fare> results = []; //add fares to it
+        for (var vehicle in vehicledata) {
+          for (var route in vehicle.routes) {
+            for (var fare in route.fares) {
+              if (route.name.toLowerCase() == query.toLowerCase()) {
+                results.add(fare);
+                print('added one'); //only fare mode
+                break;
+              }
+            }
+          }
+        }
+        print('results: $results');
+        return results;
+      }
+
+      for (var one in matching) {
+        if (findmatchingfaremodel(one).isEmpty) {
+          break;
+        }
+        searchedObject.addAll(findmatchingfaremodel(one));
+      }
+      // print('print');
+      print('startPointroutes $startPointRoutes');
+      print('endPointRoutes $endPointRoutes');
+      print('R.commonPO ${R.commonPo}');
+    }
+
+    print(searchedObject);
     print('searched objects length${searchedObject.length}');
 
     return routeModel == null
@@ -218,7 +390,7 @@ class _ResultPageState extends State<SearchResultPage> {
                 ),
                 Expanded(
                   child: ListView.builder(
-                    itemCount: searchedObject.length,
+                    itemCount: 1,
                     itemBuilder: (BuildContext context, int index) {
                       print('searched objects $searchedObject');
                       print('searached object length ${searchedObject.length}');
@@ -234,7 +406,7 @@ class _ResultPageState extends State<SearchResultPage> {
                         searchedRouteId.add(obj.route);
                         // print(searchedRouteId);rr
                       }
-                      print(searchedRouteId); //ok till here
+                      // print(searchedRouteId); //ok till here
                       //filtered list of routes
                       for (var route in jsonRouteOnly) {
                         if (searchedRouteId.contains(route.id)) {
@@ -242,7 +414,7 @@ class _ResultPageState extends State<SearchResultPage> {
                           // print(route.id);
                         }
                       }
-                      print(jsonRouteOnly.length);
+                      // print(jsonRouteOnly.length);
                       List<int> searchedVehicleId = [];
                       List<r.Vehicle> searchedVehicles = [];
                       for (var obj in searchedRoutes) {
@@ -256,76 +428,237 @@ class _ResultPageState extends State<SearchResultPage> {
                         }
                       }
                       //all stops
-
-                      return Card(
-                        margin:
-                            EdgeInsets.symmetric(vertical: 5, horizontal: 16),
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: ListTile(
-                            title: Text(
-                              '${searchedVehicles[index].name}',
-                              style: TextStyle(
-                                color: ktheme,
-                                fontSize: 18.0,
-                                fontWeight: FontWeight.bold,
+                      if (isDirect) {
+                        return Card(
+                          margin:
+                              EdgeInsets.symmetric(vertical: 5, horizontal: 16),
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: ListTile(
+                              title: Text(
+                                '${searchedVehicles[index].name}',
+                                style: TextStyle(
+                                  color: ktheme,
+                                  fontSize: 18.0,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              // onTap: () => Navigator.push(
+                              //   context,
+                              //   MaterialPageRoute(
+                              //     builder: (context) =>
+                              //         RouteDesc(route: $searchedRoutes),
+                              //   ),
+                              // ),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  SizedBox(height: 4.0),
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.route_sharp,
+                                        size: 16.0,
+                                        color: kblack,
+                                      ),
+                                      SizedBox(width: 4.0),
+                                      Expanded(
+                                        child: Text(
+                                          '${searchedRoutes[index].stops.map((stop) => stop.name)} '
+                                          // ${searchedRoutes[index].stops} '
+                                          ,
+                                          style: TextStyle(
+                                            color: kblack,
+                                            fontSize: 14.0,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  SizedBox(height: 4.0),
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.attach_money,
+                                        size: 16.0,
+                                        color: kblack,
+                                      ),
+                                      SizedBox(width: 4.0),
+                                      Text(
+                                        'Rs. ${fareList[index]}',
+                                        style: TextStyle(
+                                          color: kblack,
+                                          fontSize: 14.0,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  SizedBox(height: 4.0),
+                                  SizedBox(height: 4.0),
+                                ],
                               ),
                             ),
-                            // onTap: () => Navigator.push(
-                            //   context,
-                            //   MaterialPageRoute(
-                            //     builder: (context) =>
-                            //         RouteDesc(route: $searchedRoutes),
-                            //   ),
-                            // ),
-                            subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                SizedBox(height: 4.0),
-                                Row(
+                          ),
+                        );
+                      } else {
+                        return Column(children: [
+                          Card(
+                            margin: EdgeInsets.symmetric(
+                                vertical: 5, horizontal: 16),
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: ListTile(
+                                title: Text(
+                                  '${searchedVehicles[0].name}',
+                                  style: TextStyle(
+                                    color: ktheme,
+                                    fontSize: 18.0,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                // onTap: () => Navigator.push(
+                                //   context,
+                                //   MaterialPageRoute(
+                                //     builder: (context) =>
+                                //         RouteDesc(route: $searchedRoutes),
+                                //   ),
+                                // ),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Icon(
-                                      Icons.route_sharp,
-                                      size: 16.0,
-                                      color: kblack,
+                                    SizedBox(height: 4.0),
+                                    //stop row
+                                    Row(
+                                      children: [
+                                        SizedBox(height: 4.0),
+                                        Icon(
+                                          Icons.route_sharp,
+                                          size: 16.0,
+                                          color: kblack,
+                                        ),
+                                        SizedBox(width: 4.0),
+                                        Expanded(
+                                          child: Text(
+                                            '${searchedRoutes[0].stops.map((stop) => stop.name)} '
+                                            // ${searchedRoutes[index].stops} '
+                                            ,
+                                            style: TextStyle(
+                                              color: kblack,
+                                              fontSize: 14.0,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                    SizedBox(width: 4.0),
-                                    Text(
-                                      '${searchedRoutes[index].stops.map((stop) => stop.name)} '
-                                      // ${searchedRoutes[index].stops} '
-                                      ,
-                                      style: TextStyle(
-                                        color: kblack,
-                                        fontSize: 14.0,
-                                      ),
+                                    SizedBox(height: 4.0),
+                                    //fare row
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          Icons.attach_money,
+                                          size: 16.0,
+                                          color: kblack,
+                                        ),
+                                        SizedBox(width: 4.0),
+                                        Text(
+                                          'Rs. ${fareList[0]}',
+                                          style: TextStyle(
+                                            color: kblack,
+                                            fontSize: 14.0,
+                                          ),
+                                        ),
+                                      ],
                                     ),
+                                    SizedBox(height: 4.0),
+                                    SizedBox(height: 4.0),
                                   ],
                                 ),
-                                SizedBox(height: 4.0),
-                                Row(
-                                  children: [
-                                    Icon(
-                                      Icons.attach_money,
-                                      size: 16.0,
-                                      color: kblack,
-                                    ),
-                                    SizedBox(width: 4.0),
-                                    Text(
-                                      'Rs. ${fareList[index]}',
-                                      style: TextStyle(
-                                        color: kblack,
-                                        fontSize: 14.0,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                SizedBox(height: 4.0),
-                                SizedBox(height: 4.0),
-                              ],
+                              ),
                             ),
                           ),
-                        ),
-                      );
+                          SizedBox(height: 10.0),
+                          Icon(
+                            Icons.arrow_downward,
+                            size: 30.0,
+                            color: ktheme,
+                          ),
+                          Card(
+                            margin: EdgeInsets.symmetric(
+                                vertical: 5, horizontal: 16),
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: ListTile(
+                                title: Text(
+                                  '${searchedVehicles[1].name}',
+                                  style: TextStyle(
+                                    color: ktheme,
+                                    fontSize: 18.0,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                onTap: () {
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => RouteDesc(
+                                            route: searchedVehicles[index]),
+                                      ));
+                                },
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    SizedBox(height: 4.0),
+                                    //stop row
+                                    Row(
+                                      children: [
+                                        SizedBox(height: 4.0),
+                                        Icon(
+                                          Icons.route_sharp,
+                                          size: 16.0,
+                                          color: kblack,
+                                        ),
+                                        SizedBox(width: 4.0),
+                                        Expanded(
+                                          child: Text(
+                                            '${searchedRoutes[1].stops.map((stop) => stop.name)} '
+                                            // ${searchedRoutes[index].stops} '
+                                            ,
+                                            style: TextStyle(
+                                              color: kblack,
+                                              fontSize: 14.0,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    SizedBox(height: 4.0),
+                                    //fare row
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          Icons.attach_money,
+                                          size: 16.0,
+                                          color: kblack,
+                                        ),
+                                        SizedBox(width: 4.0),
+                                        Text(
+                                          'Rs. ${fareList[1]}',
+                                          style: TextStyle(
+                                            color: kblack,
+                                            fontSize: 14.0,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    SizedBox(height: 4.0),
+                                    SizedBox(height: 4.0),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          )
+                        ]);
+                      }
                     },
                   ),
                 ),
