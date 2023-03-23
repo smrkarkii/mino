@@ -23,7 +23,8 @@ String start = "";
 String finish = "";
 
 late String commonPo;
-bool isDirect = false;
+int counter = 0;
+int counter2 = 1;
 
 class RouteFinder {
   List<Map<String, dynamic>> places = []; //stops -> routes
@@ -255,15 +256,25 @@ class _ResultPageState extends State<SearchResultPage> {
       jsonRouteOnly.addAll(vehicle.routes);
     }
 
-    MyLogic logic = MyLogic(startingPoint: 'Satdobato', destination: 'Chapli');
+    MyLogic logic =
+        MyLogic(startingPoint: 'Satdobato', destination: 'Budhanilkantha');
 
     List<r.Fare> searchedObject = logic.search();
+    print("if direct ${searchedObject.length}");
 
-    if (searchedObject.isEmpty) {
-      isDirect = false;
+    print(searchedObject.isEmpty);
+    if (searchedObject.isNotEmpty) {
+      counter2 = searchedObject.length;
+      print(counter2);
+    } else {
+      counter += 1;
+      counter2 = 1;
+      print(counter2);
+      print(counter);
+
       RouteFinder R = RouteFinder();
       var startPointRoutes = R.findSpecific('Satdobato');
-      var endPointRoutes = R.findSpecific('Chapli');
+      var endPointRoutes = R.findSpecific('Budhanilkantha');
 
       List<String> matching =
           R.findMatchingIds(startPointRoutes, endPointRoutes);
@@ -295,14 +306,14 @@ class _ResultPageState extends State<SearchResultPage> {
         }
         searchedObject.addAll(findmatchingfaremodel(one));
       }
+      if (searchedObject.isEmpty) {
+        print("no indirect routes available");
+      }
       // print('print');
       print('startPointroutes $startPointRoutes');
       print('endPointRoutes $endPointRoutes');
       print('R.commonPO ${R.commonPo}');
     }
-
-    print(searchedObject);
-    print('searched objects length${searchedObject.length}');
 
     return routeModel == null
         ? const Center(
@@ -321,7 +332,7 @@ class _ResultPageState extends State<SearchResultPage> {
               ).headline6,
               systemOverlayStyle: SystemUiOverlayStyle.light,
             ),
-            backgroundColor: kgrey,
+            backgroundColor: kwhite,
             body: Column(
               children: [
                 Container(
@@ -390,7 +401,7 @@ class _ResultPageState extends State<SearchResultPage> {
                 ),
                 Expanded(
                   child: ListView.builder(
-                    itemCount: 1,
+                    itemCount: counter2,
                     itemBuilder: (BuildContext context, int index) {
                       print('searched objects $searchedObject');
                       print('searached object length ${searchedObject.length}');
@@ -428,7 +439,9 @@ class _ResultPageState extends State<SearchResultPage> {
                         }
                       }
                       //all stops
-                      if (isDirect) {
+                      if (counter == 0) {
+                        print(
+                            "inside if statement that is direct route $counter");
                         return Card(
                           margin:
                               EdgeInsets.symmetric(vertical: 5, horizontal: 16),
@@ -501,6 +514,7 @@ class _ResultPageState extends State<SearchResultPage> {
                           ),
                         );
                       } else {
+                        print("inside else statement $counter");
                         return Column(children: [
                           Card(
                             margin: EdgeInsets.symmetric(

@@ -61,7 +61,7 @@ class SearchBar extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10.0),
           color: kwhite,
-          border: Border.all(color: ktheme),
+          // border: Border.all(color: ktheme),
         ),
         child: Column(children: [
           TypeAheadField(

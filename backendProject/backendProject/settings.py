@@ -74,7 +74,7 @@ WSGI_APPLICATION = 'backendProject.wsgi.application'
 DATABASES = {
    'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'minor-database', 
+        'NAME': 'vehicles_three', 
         'USER': 'postgres',
         'PASSWORD': 'karki',
         'HOST': '127.0.0.1', 
