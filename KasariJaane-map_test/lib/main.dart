@@ -55,8 +55,8 @@ List<String> stopsOptions = [
   'Telecom Chowk',
   'Hattigauda',
   'Chapli',
-  'LagankhelS',
-  'LagankhelE',
+  // 'LagankhelS',
+  // 'LagankhelE',
   'Deuba Chowk',
   'Budhanilkantha'
 ];

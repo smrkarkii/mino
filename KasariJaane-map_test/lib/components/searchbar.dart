@@ -45,6 +45,8 @@ import 'constants.dart';
 import '../searchresult.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 
+final suggestionboxcontroller = SuggestionsBoxController();
+
 class SearchBar extends StatelessWidget {
   SearchBar({Key? key, required this.label, required this.controller})
       : super(key: key);
@@ -59,22 +61,34 @@ class SearchBar extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10.0),
           color: kwhite,
-          border: Border.all(color: Color.fromARGB(0, 0, 0, 0)),
+          border: Border.all(color: ktheme),
         ),
         child: Column(children: [
           TypeAheadField(
+            suggestionsBoxController: suggestionboxcontroller,
             // controller:controller,
             animationStart: 0,
             animationDuration: Duration.zero,
             textFieldConfiguration: TextFieldConfiguration(
-              autofocus: true,
               controller: controller,
+              onTap: () {
+                suggestionboxcontroller.open();
+              },
               style: TextStyle(fontSize: 15),
-              decoration: InputDecoration(border: OutlineInputBorder()),
+              decoration: InputDecoration(
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(
+                    Icons.location_on,
+                    color: ktheme,
+                  ),
+                  labelText: "Enter your destnation"),
             ),
 
-            suggestionsBoxDecoration:
-                SuggestionsBoxDecoration(color: Colors.lightBlue[50]),
+            suggestionsBoxDecoration: SuggestionsBoxDecoration(
+              // color: kwhite,
+              borderRadius: BorderRadius.zero,
+              color: kwhite,
+            ),
             suggestionsCallback: (pattern) {
               List<String> matches = <String>[];
               matches.addAll(stopsOptions);

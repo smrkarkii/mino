@@ -59,7 +59,7 @@ class SearchBar2 extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10.0),
           color: kwhite,
-          border: Border.all(color: Color.fromARGB(0, 0, 0, 0)),
+          border: Border.all(color: ktheme),
         ),
         child: Column(children: [
           TypeAheadField(
@@ -67,12 +67,16 @@ class SearchBar2 extends StatelessWidget {
             animationStart: 0,
             animationDuration: Duration.zero,
             textFieldConfiguration: TextFieldConfiguration(
-                autofocus: true,
                 controller: controller,
                 style: TextStyle(fontSize: 15),
-                decoration: InputDecoration(border: OutlineInputBorder())),
-            suggestionsBoxDecoration:
-                SuggestionsBoxDecoration(color: Colors.lightBlue[50]),
+                decoration: InputDecoration(
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(
+                      Icons.my_location,
+                      color: ktheme,
+                    ),
+                    labelText: "Enter your starting point")),
+            suggestionsBoxDecoration: SuggestionsBoxDecoration(color: kwhite),
             suggestionsCallback: (pattern) {
               List<String> matches = <String>[];
               matches.addAll(stopsOptions);
