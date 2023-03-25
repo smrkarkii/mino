@@ -3,17 +3,31 @@ import 'package:flutter/material.dart';
 import 'components/constants.dart';
 import './model/route_model.dart' as r;
 
+import 'package:timelines/timelines.dart';
+
 class RouteDesc extends StatelessWidget {
   r.Vehicle route;
-  RouteDesc({Key? key, required this.route}) : super(key: key);
+  r.Vehicle? route1;
+  RouteDesc({Key? key, required this.route, required this.route1})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    print(route);
-    List<String> stops = [];
+    List<r.Route> routed = route.routes;
+    List<r.Route> routed1 = route1!.routes;
+    // print(routed[0].stops);
+    List<r.Stop> stops = [];
+    List<r.Stop> stops1 = [];
+    for (var addstop in routed[0].stops) {
+      stops.add(addstop);
+    }
+    for (var addstop in routed1[0].stops) {
+      stops1.add(addstop);
+    }
+    // print('stops : $stops');
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: kdarkpurple,
+        backgroundColor: ktheme,
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
@@ -49,23 +63,49 @@ class RouteDesc extends StatelessWidget {
             ),
             SizedBox(height: 8.0),
             Expanded(
-              child: Card(
-                child: ListView.builder(
-                  itemCount: stops.length,
-                  itemBuilder: (BuildContext context, int index) {
-                    return ListTile(
-                      leading: Icon(
-                        Icons.stop_circle_outlined,
-                        color: Colors.redAccent,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Card(
+                      child: Timeline.tileBuilder(
+                        builder: TimelineTileBuilder.fromStyle(
+                          contentsAlign: ContentsAlign.alternating,
+                          connectorStyle: ConnectorStyle.solidLine,
+                          contentsBuilder: (context, index) => Padding(
+                            padding: const EdgeInsets.all(24.0),
+                            child: Text(
+                              stops[index].name,
+                              style: TextStyle(
+                                  color: Colors
+                                      .orange), // set the text color to orange
+                            ),
+                          ),
+                          itemCount: stops.length,
+                        ),
                       ),
-                      title: Text(stops[index]),
-                      trailing: Icon(
-                        Icons.arrow_downward,
-                        color: kblack,
+                    ),
+                  ),
+                  Expanded(
+                    child: Card(
+                      child: Timeline.tileBuilder(
+                        builder: TimelineTileBuilder.fromStyle(
+                          contentsAlign: ContentsAlign.alternating,
+                          connectorStyle: ConnectorStyle.solidLine,
+                          contentsBuilder: (context, index) => Padding(
+                            padding: const EdgeInsets.all(24.0),
+                            child: Text(
+                              stops1[index].name,
+                              style: TextStyle(
+                                  color: Colors
+                                      .orange), // set the text color to orange
+                            ),
+                          ),
+                          itemCount: stops1.length,
+                        ),
                       ),
-                    );
-                  },
-                ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -74,3 +114,20 @@ class RouteDesc extends StatelessWidget {
     );
   }
 }
+// ListView.builder(
+//                   itemCount: stops.length,
+//                   itemBuilder: (BuildContext context, int index) {
+//                     // print('stops : $stops');
+//                     return ListTile(
+//                       leading: Icon(
+//                         Icons.stop_circle_outlined,
+//                         color: Colors.redAccent,
+//                       ),
+//                       title: Text(stops[index].name),
+//                       trailing: Icon(
+//                         Icons.arrow_downward,
+//                         color: kblack,
+//                       ),
+//                     );
+//                   },
+//                 ),

@@ -53,7 +53,10 @@ class _NotificationPageState extends State<NotificationPage> {
 
                 return ListTile(
                   leading: CircleAvatar(
-                    child: Icon(Icons.notifications),
+                    child: Icon(
+                      Icons.notifications_active_outlined,
+                      color: ktheme,
+                    ),
                   ),
                   title: Text(notificationModel![index].title),
                   subtitle: Text(notificationModel![index].message),

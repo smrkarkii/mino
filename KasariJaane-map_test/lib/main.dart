@@ -55,10 +55,12 @@ List<String> stopsOptions = [
   'Telecom Chowk',
   'Hattigauda',
   'Chapli',
-  // 'LagankhelS',
-  // 'LagankhelE',
+  'LagankhelS',
+  'LagankhelE',
   'Deuba Chowk',
-  'Budhanilkantha'
+  'Budhanilkantha',
+  'Lamatar',
+  'New Bus Park'
 ];
 
 void main() => runApp(

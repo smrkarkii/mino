@@ -21,8 +21,11 @@ List<r.Route> jsonRouteOnly = []; //routeonly
 List<r.Vehicle> jsonVehicleOnly = [];
 String start = "";
 String finish = "";
+String commonStop = '';
+String startingg = '';
+String finall = '';
 
-late String commonPo;
+late String commonPo = '';
 int counter = 0;
 int counter2 = 1;
 
@@ -181,6 +184,8 @@ class MyLogic {
         }
       }
     }
+    startingg = startingPoint;
+    finall = destination;
     print('count $count');
     return results; //returns the route ids
   }
@@ -257,62 +262,77 @@ class _ResultPageState extends State<SearchResultPage> {
     }
 
     MyLogic logic =
-        MyLogic(startingPoint: 'Satdobato', destination: 'Budhanilkantha');
+        MyLogic(startingPoint: 'Chapli', destination: 'Budhanilkantha');
 
     List<r.Fare> searchedObject = logic.search();
     print("if direct ${searchedObject.length}");
 
     print(searchedObject.isEmpty);
     if (searchedObject.isNotEmpty) {
+      print("inside 266");
+      counter = 0;
       counter2 = searchedObject.length;
       print(counter2);
     } else {
+      print("inside 271");
       counter += 1;
       counter2 = 1;
       print(counter2);
       print(counter);
 
       RouteFinder R = RouteFinder();
-      var startPointRoutes = R.findSpecific('Satdobato');
+      var startPointRoutes = R.findSpecific('Chapli');
       var endPointRoutes = R.findSpecific('Budhanilkantha');
-
-      List<String> matching =
-          R.findMatchingIds(startPointRoutes, endPointRoutes);
-      // print('uniquie routes $unique')
-      print('matching $matching');
-
-      List<r.Fare> findmatchingfaremodel(query) {
-        List<r.Vehicle> vehicledata = routeModel!.vehicles;
-        print(query);
-        List<r.Fare> results = []; //add fares to it
-        for (var vehicle in vehicledata) {
-          for (var route in vehicle.routes) {
-            for (var fare in route.fares) {
-              if (route.name.toLowerCase() == query.toLowerCase()) {
-                results.add(fare);
-                print('added one'); //only fare mode
-                break;
+      if (startPointRoutes.isEmpty || endPointRoutes.isEmpty) {
+        counter2 = 1;
+        counter = 100;
+        print("inside 285");
+      } else {
+        print("inside 287");
+        counter += 1;
+        List<String> matching =
+            R.findMatchingIds(startPointRoutes, endPointRoutes);
+        // print('uniquie routes $unique')
+        print('matching $matching');
+        if (matching.isEmpty) {
+          print("no indirect routes available");
+          counter2 = 1;
+          counter = 100;
+        } else {
+          counter += 1;
+          List<r.Fare> findmatchingfaremodel(query) {
+            List<r.Vehicle> vehicledata = routeModel!.vehicles;
+            print(query);
+            List<r.Fare> results = []; //add fares to it
+            for (var vehicle in vehicledata) {
+              for (var route in vehicle.routes) {
+                for (var fare in route.fares) {
+                  if (route.name.toLowerCase() == query.toLowerCase()) {
+                    results.add(fare);
+                    print('added one'); //only fare mode
+                    break;
+                  }
+                }
               }
             }
+            print('results: $results');
+            return results;
+          }
+
+          for (var one in matching) {
+            if (findmatchingfaremodel(one).isEmpty) {
+              break;
+            }
+            searchedObject.addAll(findmatchingfaremodel(one));
           }
         }
-        print('results: $results');
-        return results;
-      }
 
-      for (var one in matching) {
-        if (findmatchingfaremodel(one).isEmpty) {
-          break;
-        }
-        searchedObject.addAll(findmatchingfaremodel(one));
+        // print('print');
+        commonStop = R.commonPo;
+        print('startPointroutes $startPointRoutes');
+        print('endPointRoutes $endPointRoutes');
+        print('R.commonPO ${R.commonPo}');
       }
-      if (searchedObject.isEmpty) {
-        print("no indirect routes available");
-      }
-      // print('print');
-      print('startPointroutes $startPointRoutes');
-      print('endPointRoutes $endPointRoutes');
-      print('R.commonPO ${R.commonPo}');
     }
 
     return routeModel == null
@@ -442,6 +462,7 @@ class _ResultPageState extends State<SearchResultPage> {
                       if (counter == 0) {
                         print(
                             "inside if statement that is direct route $counter");
+                        print(counter2);
                         return Card(
                           margin:
                               EdgeInsets.symmetric(vertical: 5, horizontal: 16),
@@ -477,7 +498,7 @@ class _ResultPageState extends State<SearchResultPage> {
                                       SizedBox(width: 4.0),
                                       Expanded(
                                         child: Text(
-                                          '${searchedRoutes[index].stops.map((stop) => stop.name)} '
+                                          '$startingg  -> $finall '
                                           // ${searchedRoutes[index].stops} '
                                           ,
                                           style: TextStyle(
@@ -513,165 +534,237 @@ class _ResultPageState extends State<SearchResultPage> {
                             ),
                           ),
                         );
+                      } else if (counter == 100) {
+                        print("no direct routes and indirect routes $counter");
+                        return Card(
+                          margin:
+                              EdgeInsets.symmetric(vertical: 5, horizontal: 16),
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: ListTile(
+                              title: Text(
+                                'No Routes Available ',
+                                style: TextStyle(
+                                  color: ktheme,
+                                  fontSize: 18.0,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              // onTap: () => Navigator.push(
+                              //   context,
+                              //   MaterialPageRoute(
+                              //     builder: (context) =>
+                              //         RouteDesc(route: $searchedRoutes),
+                              //   ),
+                              // ),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  SizedBox(height: 4.0),
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.sentiment_dissatisfied_outlined,
+                                        size: 16.0,
+                                        color: ktheme,
+                                      ),
+                                      SizedBox(width: 4.0),
+                                      Expanded(
+                                        child: Text(
+                                          'We will add missing routes ASAP',
+                                          // ${searchedRoutes[index].stops} '
+
+                                          style: TextStyle(
+                                            color: ktheme,
+                                            fontSize: 14.0,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  SizedBox(height: 4.0),
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.hourglass_bottom,
+                                        size: 16.0,
+                                        color: ktheme,
+                                      ),
+                                      SizedBox(width: 4.0),
+                                      Text(
+                                        'Keep Patience',
+                                        style: TextStyle(
+                                          color: kblack,
+                                          fontSize: 14.0,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  SizedBox(height: 4.0),
+                                  SizedBox(height: 4.0),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
                       } else {
-                        print("inside else statement $counter");
-                        return Column(children: [
-                          Card(
-                            margin: EdgeInsets.symmetric(
-                                vertical: 5, horizontal: 16),
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: ListTile(
-                                title: Text(
-                                  '${searchedVehicles[0].name}',
-                                  style: TextStyle(
-                                    color: ktheme,
-                                    fontSize: 18.0,
-                                    fontWeight: FontWeight.bold,
+                        return GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => RouteDesc(
+                                    route: searchedVehicles[index],
+                                    route1: searchedVehicles[index + 1],
                                   ),
-                                ),
-                                // onTap: () => Navigator.push(
-                                //   context,
-                                //   MaterialPageRoute(
-                                //     builder: (context) =>
-                                //         RouteDesc(route: $searchedRoutes),
-                                //   ),
-                                // ),
-                                subtitle: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    SizedBox(height: 4.0),
-                                    //stop row
-                                    Row(
+                                ));
+                          },
+                          child: Card(
+                            child: Column(children: [
+                              Card(
+                                margin: EdgeInsets.symmetric(
+                                    vertical: 5, horizontal: 16),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: ListTile(
+                                    title: Text(
+                                      '${searchedVehicles[0].name}',
+                                      style: TextStyle(
+                                        color: ktheme,
+                                        fontSize: 18.0,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    subtitle: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         SizedBox(height: 4.0),
-                                        Icon(
-                                          Icons.route_sharp,
-                                          size: 16.0,
-                                          color: kblack,
-                                        ),
-                                        SizedBox(width: 4.0),
-                                        Expanded(
-                                          child: Text(
-                                            '${searchedRoutes[0].stops.map((stop) => stop.name)} '
-                                            // ${searchedRoutes[index].stops} '
-                                            ,
-                                            style: TextStyle(
+                                        //stop row
+                                        Row(
+                                          children: [
+                                            SizedBox(height: 4.0),
+                                            Icon(
+                                              Icons.route_sharp,
+                                              size: 16.0,
                                               color: kblack,
-                                              fontSize: 14.0,
                                             ),
-                                          ),
+                                            SizedBox(width: 4.0),
+                                            Expanded(
+                                              child: Text(
+                                                '$startingg -> $commonStop '
+                                                // ${searchedRoutes[index].stops} '
+                                                ,
+                                                style: TextStyle(
+                                                  color: kblack,
+                                                  fontSize: 14.0,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
                                         ),
+                                        SizedBox(height: 4.0),
+                                        //fare row
+                                        Row(
+                                          children: [
+                                            Icon(
+                                              Icons.attach_money,
+                                              size: 16.0,
+                                              color: kblack,
+                                            ),
+                                            SizedBox(width: 4.0),
+                                            Text(
+                                              'Rs. ${fareList[0]}',
+                                              style: TextStyle(
+                                                color: kblack,
+                                                fontSize: 14.0,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        SizedBox(height: 4.0),
+                                        SizedBox(height: 4.0),
                                       ],
                                     ),
-                                    SizedBox(height: 4.0),
-                                    //fare row
-                                    Row(
-                                      children: [
-                                        Icon(
-                                          Icons.attach_money,
-                                          size: 16.0,
-                                          color: kblack,
-                                        ),
-                                        SizedBox(width: 4.0),
-                                        Text(
-                                          'Rs. ${fareList[0]}',
-                                          style: TextStyle(
-                                            color: kblack,
-                                            fontSize: 14.0,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    SizedBox(height: 4.0),
-                                    SizedBox(height: 4.0),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                          SizedBox(height: 10.0),
-                          Icon(
-                            Icons.arrow_downward,
-                            size: 30.0,
-                            color: ktheme,
-                          ),
-                          Card(
-                            margin: EdgeInsets.symmetric(
-                                vertical: 5, horizontal: 16),
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: ListTile(
-                                title: Text(
-                                  '${searchedVehicles[1].name}',
-                                  style: TextStyle(
-                                    color: ktheme,
-                                    fontSize: 18.0,
-                                    fontWeight: FontWeight.bold,
                                   ),
                                 ),
-                                onTap: () {
-                                  Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => RouteDesc(
-                                            route: searchedVehicles[index]),
-                                      ));
-                                },
-                                subtitle: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    SizedBox(height: 4.0),
-                                    //stop row
-                                    Row(
+                              ),
+                              Icon(
+                                Icons.arrow_downward,
+                                size: 30.0,
+                                color: ktheme,
+                              ),
+                              Card(
+                                margin: EdgeInsets.symmetric(
+                                    vertical: 5, horizontal: 16),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: ListTile(
+                                    title: Text(
+                                      '${searchedVehicles[1].name}',
+                                      style: TextStyle(
+                                        color: ktheme,
+                                        fontSize: 18.0,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    subtitle: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         SizedBox(height: 4.0),
-                                        Icon(
-                                          Icons.route_sharp,
-                                          size: 16.0,
-                                          color: kblack,
-                                        ),
-                                        SizedBox(width: 4.0),
-                                        Expanded(
-                                          child: Text(
-                                            '${searchedRoutes[1].stops.map((stop) => stop.name)} '
-                                            // ${searchedRoutes[index].stops} '
-                                            ,
-                                            style: TextStyle(
+                                        //stop row
+                                        Row(
+                                          children: [
+                                            SizedBox(height: 4.0),
+                                            Icon(
+                                              Icons.route_sharp,
+                                              size: 16.0,
                                               color: kblack,
-                                              fontSize: 14.0,
                                             ),
-                                          ),
+                                            SizedBox(width: 4.0),
+                                            Expanded(
+                                              child: Text(
+                                                '$commonStop -> $finall ',
+                                                // ${searchedRoutes[index].stops} '
+
+                                                style: TextStyle(
+                                                  color: kblack,
+                                                  fontSize: 14.0,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
                                         ),
+                                        SizedBox(height: 4.0),
+                                        //fare row
+                                        Row(
+                                          children: [
+                                            Icon(
+                                              Icons.attach_money,
+                                              size: 16.0,
+                                              color: kblack,
+                                            ),
+                                            SizedBox(width: 4.0),
+                                            Text(
+                                              'Rs. ${fareList[1]}',
+                                              style: TextStyle(
+                                                color: kblack,
+                                                fontSize: 14.0,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        SizedBox(height: 4.0),
+                                        SizedBox(height: 4.0),
                                       ],
                                     ),
-                                    SizedBox(height: 4.0),
-                                    //fare row
-                                    Row(
-                                      children: [
-                                        Icon(
-                                          Icons.attach_money,
-                                          size: 16.0,
-                                          color: kblack,
-                                        ),
-                                        SizedBox(width: 4.0),
-                                        Text(
-                                          'Rs. ${fareList[1]}',
-                                          style: TextStyle(
-                                            color: kblack,
-                                            fontSize: 14.0,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    SizedBox(height: 4.0),
-                                    SizedBox(height: 4.0),
-                                  ],
+                                  ),
                                 ),
-                              ),
-                            ),
-                          )
-                        ]);
+                              )
+                            ]),
+                          ),
+                        );
                       }
                     },
                   ),
