@@ -13,7 +13,8 @@ import '../components/constants.dart';
 // import './components/constants.dart';
 import './components/searchbar.dart';
 import './components/searchbar2.dart';
-import './RouteDesc.dart';
+import 'routedesc.dart';
+import 'routedesc2.dart';
 import 'dart:convert';
 
 r.RouteModel? routeModel; //jsonVehicle
@@ -262,7 +263,7 @@ class _ResultPageState extends State<SearchResultPage> {
     }
 
     MyLogic logic =
-        MyLogic(startingPoint: 'Chapli', destination: 'Budhanilkantha');
+        MyLogic(startingPoint: 'Gwarko', destination: 'New Baneshwor');
 
     List<r.Fare> searchedObject = logic.search();
     print("if direct ${searchedObject.length}");
@@ -281,8 +282,8 @@ class _ResultPageState extends State<SearchResultPage> {
       print(counter);
 
       RouteFinder R = RouteFinder();
-      var startPointRoutes = R.findSpecific('Chapli');
-      var endPointRoutes = R.findSpecific('Budhanilkantha');
+      var startPointRoutes = R.findSpecific('Gwarko');
+      var endPointRoutes = R.findSpecific('New Baneshwor');
       if (startPointRoutes.isEmpty || endPointRoutes.isEmpty) {
         counter2 = 1;
         counter = 100;
@@ -460,80 +461,88 @@ class _ResultPageState extends State<SearchResultPage> {
                       }
                       //all stops
                       if (counter == 0) {
-                        print(
-                            "inside if statement that is direct route $counter");
-                        print(counter2);
-                        return Card(
-                          margin:
-                              EdgeInsets.symmetric(vertical: 5, horizontal: 16),
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: ListTile(
-                              title: Text(
-                                '${searchedVehicles[index].name}',
-                                style: TextStyle(
-                                  color: ktheme,
-                                  fontSize: 18.0,
-                                  fontWeight: FontWeight.bold,
+                        return GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => RouteDesc(
+                                      route: searchedVehicles[index],
+                                    ),
+                                  ));
+                            },
+                            child: Card(
+                              margin: EdgeInsets.symmetric(
+                                  vertical: 5, horizontal: 16),
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: ListTile(
+                                  title: Text(
+                                    '${searchedVehicles[index].name}',
+                                    style: TextStyle(
+                                      color: ktheme,
+                                      fontSize: 18.0,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  // onTap: () => Navigator.push(
+                                  //   context,
+                                  //   MaterialPageRoute(
+                                  //     builder: (context) => RouteDesc(
+                                  //         route: $searchedVehicles[index]),
+                                  //   ),
+                                  // ),
+                                  subtitle: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      SizedBox(height: 4.0),
+                                      Row(
+                                        children: [
+                                          Icon(
+                                            Icons.route_sharp,
+                                            size: 16.0,
+                                            color: kblack,
+                                          ),
+                                          SizedBox(width: 4.0),
+                                          Expanded(
+                                            child: Text(
+                                              '$startingg  -> $finall '
+                                              // ${searchedRoutes[index].stops} '
+                                              ,
+                                              style: TextStyle(
+                                                color: kblack,
+                                                fontSize: 14.0,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      SizedBox(height: 4.0),
+                                      Row(
+                                        children: [
+                                          Icon(
+                                            Icons.attach_money,
+                                            size: 16.0,
+                                            color: kblack,
+                                          ),
+                                          SizedBox(width: 4.0),
+                                          Text(
+                                            'Rs. ${fareList[index]}',
+                                            style: TextStyle(
+                                              color: kblack,
+                                              fontSize: 14.0,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      SizedBox(height: 4.0),
+                                      SizedBox(height: 4.0),
+                                    ],
+                                  ),
                                 ),
                               ),
-                              // onTap: () => Navigator.push(
-                              //   context,
-                              //   MaterialPageRoute(
-                              //     builder: (context) =>
-                              //         RouteDesc(route: $searchedRoutes),
-                              //   ),
-                              // ),
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  SizedBox(height: 4.0),
-                                  Row(
-                                    children: [
-                                      Icon(
-                                        Icons.route_sharp,
-                                        size: 16.0,
-                                        color: kblack,
-                                      ),
-                                      SizedBox(width: 4.0),
-                                      Expanded(
-                                        child: Text(
-                                          '$startingg  -> $finall '
-                                          // ${searchedRoutes[index].stops} '
-                                          ,
-                                          style: TextStyle(
-                                            color: kblack,
-                                            fontSize: 14.0,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  SizedBox(height: 4.0),
-                                  Row(
-                                    children: [
-                                      Icon(
-                                        Icons.attach_money,
-                                        size: 16.0,
-                                        color: kblack,
-                                      ),
-                                      SizedBox(width: 4.0),
-                                      Text(
-                                        'Rs. ${fareList[index]}',
-                                        style: TextStyle(
-                                          color: kblack,
-                                          fontSize: 14.0,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  SizedBox(height: 4.0),
-                                  SizedBox(height: 4.0),
-                                ],
-                              ),
-                            ),
-                          ),
-                        );
+                            ));
                       } else if (counter == 100) {
                         print("no direct routes and indirect routes $counter");
                         return Card(
@@ -613,7 +622,7 @@ class _ResultPageState extends State<SearchResultPage> {
                             Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => RouteDesc(
+                                  builder: (context) => RouteDescTwo(
                                     route: searchedVehicles[index],
                                     route1: searchedVehicles[index + 1],
                                   ),

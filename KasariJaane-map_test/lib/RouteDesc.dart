@@ -7,23 +7,20 @@ import 'package:timelines/timelines.dart';
 
 class RouteDesc extends StatelessWidget {
   r.Vehicle route;
-  r.Vehicle? route1;
-  RouteDesc({Key? key, required this.route, required this.route1})
-      : super(key: key);
+
+  RouteDesc({Key? key, required this.route}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     List<r.Route> routed = route.routes;
-    List<r.Route> routed1 = route1!.routes;
+
     // print(routed[0].stops);
     List<r.Stop> stops = [];
-    List<r.Stop> stops1 = [];
+
     for (var addstop in routed[0].stops) {
       stops.add(addstop);
     }
-    for (var addstop in routed1[0].stops) {
-      stops1.add(addstop);
-    }
+
     // print('stops : $stops');
     return Scaffold(
       appBar: AppBar(
@@ -81,26 +78,6 @@ class RouteDesc extends StatelessWidget {
                             ),
                           ),
                           itemCount: stops.length,
-                        ),
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    child: Card(
-                      child: Timeline.tileBuilder(
-                        builder: TimelineTileBuilder.fromStyle(
-                          contentsAlign: ContentsAlign.alternating,
-                          connectorStyle: ConnectorStyle.solidLine,
-                          contentsBuilder: (context, index) => Padding(
-                            padding: const EdgeInsets.all(24.0),
-                            child: Text(
-                              stops1[index].name,
-                              style: TextStyle(
-                                  color: Colors
-                                      .orange), // set the text color to orange
-                            ),
-                          ),
-                          itemCount: stops1.length,
                         ),
                       ),
                     ),

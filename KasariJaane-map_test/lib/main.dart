@@ -18,7 +18,7 @@ import 'VehicleDesc.dart';
 import 'menu/aboutus.dart';
 import 'menu/news.dart';
 import 'menu/notifications.dart';
-import 'menu/profile.dart';
+import 'menu/sajhayatayat.dart';
 
 // import 'menu/setting.dart';
 List<String> stopsOptions = [
@@ -99,9 +99,9 @@ List<Map<String, dynamic>> menuItems = [
     'widget': MyHomePage()
   },
   {
-    'icon': Icons.person_outlined,
-    'label': 'Profile',
-    'widget': ProfilePage(),
+    'icon': Icons.bus_alert_outlined,
+    'label': 'Sajha Yatayat',
+    'widget': Sajhayatayat(),
   },
   {
     //todo add your location feature here
